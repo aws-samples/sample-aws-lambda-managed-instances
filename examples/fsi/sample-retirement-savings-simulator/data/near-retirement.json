@@ -1,0 +1,10 @@
+{
+  "name": "near-retirement",
+  "initialSavings": 500000,
+  "monthlyContribution": 2000,
+  "yearsToRetirement": 5,
+  "annualReturn": 0.04,
+  "volatility": 0.06,
+  "totalScenarios": 1000000,
+  "shards": 10
+}

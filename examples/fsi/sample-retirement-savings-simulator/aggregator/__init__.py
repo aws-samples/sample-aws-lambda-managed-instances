@@ -1,0 +1,1 @@
+# Aggregator Lambda package

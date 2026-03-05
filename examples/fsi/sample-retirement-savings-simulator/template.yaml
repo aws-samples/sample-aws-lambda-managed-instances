@@ -1,0 +1,526 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Retirement Savings Monte Carlo Simulator on Lambda Managed Instances (LMI)
+  
+  Demonstrates sustained CPU-intensive batch compute with simple SQS orchestration.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: retirement-sim
+    Description: Project name prefix for resources
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where the capacity provider will launch EC2 instances
+
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: List of subnet IDs (at least 2 in different AZs) for the capacity provider
+
+Resources:
+  ##############################################################
+  # Security Group for LMI
+  ##############################################################
+  LMISecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for LMI Lambda functions
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 443
+          ToPort: 443
+          Description: Allow HTTPS outbound for AWS API calls
+      Tags:
+        - Key: Name
+          Value: !Sub '${ProjectName}-lmi-sg'
+        - Key: Project
+          Value: !Ref ProjectName
+  ##############################################################
+  # S3 Buckets
+  ##############################################################
+  InputBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${ProjectName}-input-${AWS::AccountId}-${AWS::Region}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  OutputBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${ProjectName}-output-${AWS::AccountId}-${AWS::Region}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  ##############################################################
+  # SQS Queues
+  ##############################################################
+  WorkQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-work-queue'
+      VisibilityTimeout: 960  # 16 minutes (longer than Lambda timeout)
+      MessageRetentionPeriod: 86400  # 24 hours
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  DeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-dlq'
+      MessageRetentionPeriod: 1209600  # 14 days
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  ##############################################################
+  # DynamoDB Table
+  ##############################################################
+  JobsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-jobs'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: jobId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: jobId
+          KeyType: HASH
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  ##############################################################
+  # IAM Roles
+  ##############################################################
+  SubmitterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: SubmitterPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Sub '${InputBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Resource: !GetAtt JobsTable.Arn
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                  - sqs:SendMessageBatch
+                Resource: !GetAtt WorkQueue.Arn
+
+  WorkerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: WorkerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Sub '${InputBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: !Sub '${OutputBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:UpdateItem
+                Resource: !GetAtt JobsTable.Arn
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt WorkQueue.Arn
+              - Effect: Allow
+                Action:
+                  - lambda:GetFunction
+                  - lambda:GetFunctionConfiguration
+                  - lambda:PublishVersion
+                  - lambda:UpdateFunctionConfiguration
+                Resource: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-worker'
+
+  AggregatorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: AggregatorPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt OutputBucket.Arn
+                  - !Sub '${OutputBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                Resource: !GetAtt JobsTable.Arn
+
+  # Operator Role for Capacity Provider
+  # This role allows Lambda to manage EC2 instances on your behalf
+  CapacityProviderOperatorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CapacityProviderOperatorPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:RunInstances
+                  - ec2:CreateTags
+                  - ec2:AttachNetworkInterface
+                Resource:
+                  - arn:aws:ec2:*:*:instance/*
+                  - arn:aws:ec2:*:*:network-interface/*
+                  - arn:aws:ec2:*:*:volume/*
+                Condition:
+                  StringEquals:
+                    ec2:ManagedResourceOperator: scaler.lambda.amazonaws.com
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeAvailabilityZones
+                  - ec2:DescribeCapacityReservations
+                  - ec2:DescribeInstances
+                  - ec2:DescribeInstanceStatus
+                  - ec2:DescribeInstanceTypeOfferings
+                  - ec2:DescribeInstanceTypes
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeSubnets
+                Resource: '*'
+                # Note: EC2 Describe actions do not support resource-level permissions
+              - Effect: Allow
+                Action:
+                  - ec2:RunInstances
+                  - ec2:CreateNetworkInterface
+                Resource:
+                  - arn:aws:ec2:*:*:subnet/*
+                  - arn:aws:ec2:*:*:security-group/*
+              - Effect: Allow
+                Action:
+                  - ec2:RunInstances
+                Resource:
+                  - arn:aws:ec2:*:*:image/*
+                Condition:
+                  StringEquals:
+                    ec2:Owner: amazon
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: !GetAtt WorkerRole.Arn
+
+  ##############################################################
+  # Capacity Provider for LMI
+  ##############################################################
+  ComputeCapacityProvider:
+    Type: AWS::Lambda::CapacityProvider
+    Properties:
+      CapacityProviderName: !Sub '${ProjectName}-capacity-provider-v2'
+      PermissionsConfig:
+        CapacityProviderOperatorRoleArn: !GetAtt CapacityProviderOperatorRole.Arn
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LMISecurityGroup
+        SubnetIds: !Ref SubnetIds
+      InstanceRequirements:
+        Architectures:
+          - x86_64
+        AllowedInstanceTypes:
+          - c5.xlarge
+          - c5.2xlarge
+          - c6i.xlarge
+          - c6i.2xlarge
+      CapacityProviderScalingConfig:
+        MaxVCpuCount: 48  # Allow up to 12 c5.xlarge instances (4 vCPUs each)
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  ##############################################################
+  # Lambda Functions
+  ##############################################################
+  JobSubmitterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-submitter'
+      CodeUri: submitter/
+      Handler: handler.lambda_handler
+      Runtime: python3.13
+      Architectures:
+        - x86_64
+      Timeout: 60
+      MemorySize: 512
+      Role: !GetAtt SubmitterRole.Arn
+      Environment:
+        Variables:
+          JOBS_TABLE_NAME: !Ref JobsTable
+          WORK_QUEUE_URL: !Ref WorkQueue
+          INPUT_BUCKET: !Ref InputBucket
+      Events:
+        SubmitJobApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JobSubmitterApi
+            Path: /submit
+            Method: POST
+      Tags:
+        Project: !Ref ProjectName
+
+  ##############################################################
+  # REST API Gateway
+  ##############################################################
+  JobSubmitterApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      TracingEnabled: true
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiGatewayLogGroup.Arn
+        Format: '$context.requestId $context.error.message $context.error.messageString'
+      Cors:
+        AllowOrigin: "'*'"
+        AllowMethods: "'POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      Tags:
+        Project: !Ref ProjectName
+
+  ApiGatewayLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/apigateway/${ProjectName}'
+      RetentionInDays: 7
+
+  WorkerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-worker'
+      CodeUri: worker/
+      Handler: handler.lambda_handler
+      Runtime: python3.13
+      Architectures:
+        - x86_64
+      Role: !GetAtt WorkerRole.Arn
+      MemorySize: 4096  # 4 GB memory for numpy initialization
+      Timeout: 900  # 15 minutes
+      AutoPublishAlias: live  # Required for LMI - automatically publishes versions
+      DeploymentPreference:
+        Type: AllAtOnce  # Deploy immediately without gradual rollout
+      Environment:
+        Variables:
+          JOBS_TABLE_NAME: !Ref JobsTable
+          INPUT_BUCKET: !Ref InputBucket
+          OUTPUT_BUCKET: !Ref OutputBucket
+      # LMI Configuration
+      CapacityProviderConfig:
+        Arn: !GetAtt ComputeCapacityProvider.Arn
+        ExecutionEnvironmentMemoryGiBPerVCpu: 2.0  # 2 GiB per vCPU (2:1 ratio)
+        PerExecutionEnvironmentMaxConcurrency: 10  # Allow up to 10 concurrent invocations per instance
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt WorkQueue.Arn
+            BatchSize: 1
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+      Tags:
+        Project: !Ref ProjectName
+
+  AggregatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-aggregator'
+      CodeUri: aggregator/
+      Handler: handler.lambda_handler
+      Runtime: python3.13
+      Architectures:
+        - x86_64
+      Timeout: 60
+      MemorySize: 512
+      Role: !GetAtt AggregatorRole.Arn
+      Environment:
+        Variables:
+          JOBS_TABLE_NAME: !Ref JobsTable
+          OUTPUT_BUCKET: !Ref OutputBucket
+      Events:
+        GetResultsApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JobSubmitterApi
+            Path: /results/{jobId}
+            Method: GET
+      Tags:
+        Project: !Ref ProjectName
+
+##############################################################
+# Outputs
+##############################################################
+Outputs:
+  InputBucketName:
+    Description: S3 bucket for input configurations
+    Value: !Ref InputBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-InputBucket'
+
+  OutputBucketName:
+    Description: S3 bucket for simulation results
+    Value: !Ref OutputBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-OutputBucket'
+
+  JobSubmitterFunctionArn:
+    Description: Job Submitter Lambda function ARN
+    Value: !GetAtt JobSubmitterFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-SubmitterArn'
+
+  ApiEndpoint:
+    Description: API Gateway endpoint URL for submitting jobs
+    Value: !Sub 'https://${JobSubmitterApi}.execute-api.${AWS::Region}.amazonaws.com/prod/submit'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiEndpoint'
+
+  WorkerFunctionArn:
+    Description: Worker Lambda function ARN
+    Value: !GetAtt WorkerFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-WorkerArn'
+
+  CapacityProviderName:
+    Description: LMI Capacity Provider name
+    Value: !Ref ComputeCapacityProvider
+    Export:
+      Name: !Sub '${AWS::StackName}-CapacityProvider'
+
+  CapacityProviderArn:
+    Description: LMI Capacity Provider ARN
+    Value: !GetAtt ComputeCapacityProvider.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-CapacityProviderArn'
+
+  JobsTableName:
+    Description: DynamoDB table for job tracking
+    Value: !Ref JobsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-JobsTable'
+
+  VpcId:
+    Description: VPC ID used for the capacity provider
+    Value: !Ref VpcId
+
+  SubnetIds:
+    Description: Subnet IDs used for the capacity provider
+    Value: !Join [',', !Ref SubnetIds]
+
+  SecurityGroupId:
+    Description: Security Group ID used for the capacity provider
+    Value: !Ref LMISecurityGroup
+
+  SampleInvocation:
+    Description: Sample command to submit a job
+    Value: !Sub |
+      aws lambda invoke \
+        --function-name ${JobSubmitterFunction} \
+        --payload '{"configS3Key": "data/conservative-saver.json"}' \
+        response.json
+
+  LMINote:
+    Description: Important note about Lambda Managed Instances
+    Value: |
+      This sample uses Lambda Managed Instances (LMI) which runs on EC2 capacity.
+      The Worker function is configured to run on the capacity provider with:
+      - 2 GiB memory per vCPU
+      - Up to 10 concurrent invocations per EC2 instance
+      - Auto-scaling up to 16 vCPUs (4 c5.xlarge instances)
+      
+      LMI is ideal for sustained compute workloads like this Monte Carlo simulation.
+      Pricing is based on EC2 instance hours, not per-request duration.

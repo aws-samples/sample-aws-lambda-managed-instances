@@ -1,0 +1,10 @@
+{
+  "name": "conservative-saver",
+  "initialSavings": 100000,
+  "monthlyContribution": 1000,
+  "yearsToRetirement": 20,
+  "annualReturn": 0.05,
+  "volatility": 0.08,
+  "totalScenarios": 1000000,
+  "shards": 10
+}

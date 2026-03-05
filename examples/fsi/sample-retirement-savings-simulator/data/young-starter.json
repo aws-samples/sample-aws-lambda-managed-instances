@@ -1,0 +1,10 @@
+{
+  "name": "young-starter",
+  "initialSavings": 5000,
+  "monthlyContribution": 300,
+  "yearsToRetirement": 40,
+  "annualReturn": 0.08,
+  "volatility": 0.18,
+  "totalScenarios": 1000000,
+  "shards": 10
+}
