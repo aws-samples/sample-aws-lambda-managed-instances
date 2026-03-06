@@ -8,7 +8,7 @@ import json
 import uuid
 import boto3
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 
 # Initialize AWS clients
@@ -91,7 +91,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'totalShards': num_shards,
                 'completedShards': 0,
                 'failedShards': 0,
-                'createdAt': datetime.utcnow().isoformat() + 'Z',
+                'createdAt': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
                 'configS3Key': config_s3_key,
                 'configName': config.get('name', 'unknown'),
                 'totalScenarios': total_scenarios,

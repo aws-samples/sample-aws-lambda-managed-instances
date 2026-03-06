@@ -44,6 +44,7 @@ Resources:
   ##############################################################
   InputBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
     Properties:
       BucketName: !Sub '${ProjectName}-input-${AWS::AccountId}-${AWS::Region}'
       PublicAccessBlockConfiguration:
@@ -63,6 +64,7 @@ Resources:
 
   OutputBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
     Properties:
       BucketName: !Sub '${ProjectName}-output-${AWS::AccountId}-${AWS::Region}'
       PublicAccessBlockConfiguration:
@@ -113,7 +115,7 @@ Resources:
   JobsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub '${ProjectName}-jobs'
+      TableName: !Sub "${ProjectName}-jobs"
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: jobId

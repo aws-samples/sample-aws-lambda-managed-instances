@@ -10,7 +10,7 @@ import boto3
 import os
 import time
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from simulator import simulate_retirement_savings
 
@@ -180,7 +180,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     ':inst': ec2_metadata['instanceId'],
                     ':type': ec2_metadata['instanceType'],
                     ':az': ec2_metadata['availabilityZone'],
-                    ':updated': datetime.utcnow().isoformat() + 'Z'
+                    ':updated': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
                 },
                 ReturnValues='ALL_NEW'
             )
@@ -199,7 +199,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         ConditionExpression='#status <> :status',
                         ExpressionAttributeValues={
                             ':status': 'COMPLETED',
-                            ':completed': datetime.utcnow().isoformat() + 'Z'
+                            ':completed': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
                         }
                     )
                     print(f"Job {job_id} completed: {completed}/{total} shards")
@@ -272,7 +272,7 @@ def emit_metrics(
             "Timestamp": int(time.time() * 1000),
             "CloudWatchMetrics": [{
                 "Namespace": "RetirementSimulator/LMI",
-                "Dimensions": [["JobId", "ShardId", "MemorySize", "InstanceId", "InstanceType"]],
+                "Dimensions": [["InstanceType", "MemorySize"]],
                 "Metrics": [
                     {"Name": "ScenariosProcessed", "Unit": "Count"},
                     {"Name": "ExecutionDuration", "Unit": "Milliseconds"},
@@ -320,7 +320,7 @@ def log_summary(
     Log structured summary for CloudWatch Insights queries.
     """
     summary = {
-        "timestamp": datetime.utcnow().isoformat() + 'Z',
+        "timestamp": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
         "level": "INFO",
         "message": "Shard processing complete",
         "jobId": job_id,
