@@ -2,6 +2,14 @@
 
 An AWS Sample demonstrating Lambda Managed Instances (LMI) for sustained CPU-intensive Monte Carlo simulation.
 
+---
+
+**Contents**
+
+[Problem Statement](#problem-statement) | [Solution Using LMI](#solution-using-lambda-managed-instances-lmi) | [Prerequisites](#prerequisites) | [Quick Start](#quick-start) | [Sample Output](#sample-output) | [Load Testing and LMI Scaling Behavior](#load-testing-and-lmi-scaling-behavior) | [Observability and Monitoring](#observability-and-monitoring) | [Cleanup](#cleanup) | [Conclusion](#conclusion)
+
+---
+
 ## Problem Statement
 
 ### The Business Scenario
