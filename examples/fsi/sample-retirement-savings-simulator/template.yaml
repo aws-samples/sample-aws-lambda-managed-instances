@@ -22,6 +22,8 @@ Parameters:
 Resources:
   ##############################################################
   # Security Group for LMI
+  # Attached to EC2 instances launched by the capacity provider.
+  # HTTPS-only egress for AWS API calls; no ingress needed.
   ##############################################################
   LMISecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -39,8 +41,14 @@ Resources:
           Value: !Sub '${ProjectName}-lmi-sg'
         - Key: Project
           Value: !Ref ProjectName
+
   ##############################################################
   # S3 Buckets
+  # InputBucket: stores simulation config JSON uploaded by advisors.
+  # OutputBucket: stores per-shard results written by workers.
+  # Both use SSE-S3 encryption, versioning, and block all public access.
+  # DeletionPolicy: Delete allows sam delete to remove the buckets.
+  # Note: versioned buckets must be emptied before deletion.
   ##############################################################
   InputBucket:
     Type: AWS::S3::Bucket
@@ -84,6 +92,12 @@ Resources:
 
   ##############################################################
   # SQS Queues
+  # WorkQueue: distributes simulation shards to worker Lambdas.
+  #   - VisibilityTimeout exceeds Lambda's 15-min max to prevent
+  #     duplicate processing during retries.
+  #   - Failed messages move to the DLQ after 3 attempts.
+  # DeadLetterQueue: captures messages that failed all retries
+  #   for inspection. Retained 14 days.
   ##############################################################
   WorkQueue:
     Type: AWS::SQS::Queue
@@ -111,6 +125,10 @@ Resources:
 
   ##############################################################
   # DynamoDB Table
+  # Tracks job lifecycle: SUBMITTED → RUNNING → COMPLETED.
+  # Workers atomically increment completedShards; the last
+  # worker to finish flips status to COMPLETED.
+  # On-demand billing — no capacity planning needed.
   ##############################################################
   JobsTable:
     Type: AWS::DynamoDB::Table
@@ -133,7 +151,10 @@ Resources:
 
   ##############################################################
   # IAM Roles
+  # Each Lambda function gets a least-privilege role scoped to
+  # the specific resources (buckets, table, queue) in this stack.
   ##############################################################
+  # Submitter: reads config from S3, creates job in DynamoDB, sends shard messages to SQS
   SubmitterRole:
     Type: AWS::IAM::Role
     Properties:
@@ -166,6 +187,8 @@ Resources:
                   - sqs:SendMessageBatch
                 Resource: !GetAtt WorkQueue.Arn
 
+  # Worker: runs simulation, writes results to S3, updates job progress in DynamoDB.
+  # Includes VPC access for LMI placement on EC2 instances.
   WorkerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -210,6 +233,7 @@ Resources:
                   - lambda:UpdateFunctionConfiguration
                 Resource: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-worker'
 
+  # Aggregator: read-only access to fetch shard results from S3 and job status from DynamoDB
   AggregatorRole:
     Type: AWS::IAM::Role
     Properties:
@@ -302,6 +326,11 @@ Resources:
 
   ##############################################################
   # Capacity Provider for LMI
+  # Manages EC2 instances that host worker Lambda execution
+  # environments. LMI auto-scales instances based on demand.
+  # - Compute-optimized instances (c5/c6i) for CPU-heavy simulation
+  # - MaxVCpuCount caps total EC2 spend
+  # - Operator role grants Lambda permission to launch/manage instances
   ##############################################################
   ComputeCapacityProvider:
     Type: AWS::Lambda::CapacityProvider
@@ -329,6 +358,17 @@ Resources:
 
   ##############################################################
   # Lambda Functions
+  #
+  # Submitter: API-triggered, validates config and fans out
+  #   shard messages to SQS. Lightweight — runs on standard Lambda.
+  #
+  # Worker: SQS-triggered, runs Monte Carlo simulation per shard.
+  #   Runs on LMI via CapacityProviderConfig for sustained compute.
+  #   AutoPublishAlias required for LMI version tracking.
+  #   BatchSize=1 so each shard gets a dedicated invocation.
+  #
+  # Aggregator: API-triggered, combines shard results from S3
+  #   and computes final percentiles over the full distribution.
   ##############################################################
   JobSubmitterFunction:
     Type: AWS::Serverless::Function
@@ -359,6 +399,9 @@ Resources:
 
   ##############################################################
   # REST API Gateway
+  # POST /submit       → JobSubmitterFunction (create a job)
+  # GET  /results/{id} → AggregatorFunction   (fetch results)
+  # X-Ray tracing enabled. CORS open for sample use.
   ##############################################################
   JobSubmitterApi:
     Type: AWS::Serverless::Api
