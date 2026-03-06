@@ -128,7 +128,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             # Run Monte Carlo simulation
             compute_start = time.time()
-            results = simulate_retirement_savings(
+            results, final_savings = simulate_retirement_savings(
                 initial_savings=config['initialSavings'],
                 monthly_contribution=config['monthlyContribution'],
                 years_to_retirement=config['yearsToRetirement'],
@@ -144,12 +144,13 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             scenarios_per_second = scenarios / (compute_time_ms / 1000)
             ms_per_scenario = compute_time_ms / scenarios
             
-            # Prepare shard result
+            # Prepare shard result (includes raw values for accurate aggregation)
             shard_result = {
                 'jobId': job_id,
                 'shardId': shard_id,
                 'scenarios': scenarios,
                 'results': results,
+                'finalSavings': final_savings,
                 'executionMs': int(execution_time_ms),
                 'computeMs': int(compute_time_ms),
                 'ioMs': int(io_time_ms),

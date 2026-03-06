@@ -19,13 +19,14 @@ def simulate_retirement_savings(
     volatility: float,
     scenarios: int,
     seed: int = None
-) -> Dict[str, float]:
+) -> Tuple[Dict[str, float], list]:
     """
     Run Monte Carlo simulation for retirement savings.
-    
+
     Uses Geometric Brownian Motion to model market returns with volatility.
-    Each scenario simulates monthly compounding over the retirement period.
-    
+    Vectorized across all scenarios for performance — processes all scenarios
+    simultaneously using NumPy array operations.
+
     Args:
         initial_savings: Starting savings amount ($)
         monthly_contribution: Amount added each month ($)
@@ -34,119 +35,37 @@ def simulate_retirement_savings(
         volatility: Annual volatility/standard deviation (e.g., 0.15 for 15%)
         scenarios: Number of Monte Carlo scenarios to run
         seed: Random seed for reproducibility (optional)
-    
+
     Returns:
-        Dictionary with percentiles and statistics:
-        {
-            'p5': 5th percentile final savings,
-            'p50': Median final savings,
-            'p95': 95th percentile final savings,
-            'mean': Average final savings,
-            'stdDev': Standard deviation of final savings
-        }
+        Tuple of (statistics dict, raw final savings list):
+        - statistics: {'p5', 'p50', 'p95', 'mean', 'stdDev'}
+        - final_savings: list of final portfolio values for each scenario
     """
-    # Set random seed for deterministic results
-    if seed is not None:
-        np.random.seed(seed)
-    
+    # Use modern NumPy RNG (np.random.seed is deprecated)
+    rng = np.random.default_rng(seed)
+
     # Convert annual parameters to monthly
     months = years_to_retirement * 12
     monthly_return = annual_return / 12
     monthly_volatility = volatility / np.sqrt(12)
-    
-    # Initialize array to store final savings for each scenario
-    final_savings = np.zeros(scenarios)
-    
-    # Run Monte Carlo simulation
-    for scenario_idx in range(scenarios):
-        savings = initial_savings
-        
-        # Simulate each month
-        for month in range(months):
-            # Add monthly contribution
-            savings += monthly_contribution
-            
-            # Apply stochastic return using Geometric Brownian Motion
-            # Formula: return = drift + volatility * random_shock
-            random_shock = np.random.normal(0, 1)
-            monthly_actual_return = monthly_return + (monthly_volatility * random_shock)
-            
-            # Update savings with return
-            savings *= (1 + monthly_actual_return)
-        
-        # Store final savings for this scenario
-        final_savings[scenario_idx] = savings
-    
+
+    # Pre-generate all random returns: shape (scenarios, months)
+    # Each element is the monthly return for one scenario in one month
+    monthly_returns = rng.normal(monthly_return, monthly_volatility, size=(scenarios, months))
+
+    # Vectorized simulation across all scenarios simultaneously
+    savings = np.full(scenarios, initial_savings, dtype=np.float64)
+    for month in range(months):
+        savings += monthly_contribution
+        savings *= (1 + monthly_returns[:, month])
+
     # Calculate statistics
     results = {
-        'p5': float(np.percentile(final_savings, 5)),
-        'p50': float(np.percentile(final_savings, 50)),
-        'p95': float(np.percentile(final_savings, 95)),
-        'mean': float(np.mean(final_savings)),
-        'stdDev': float(np.std(final_savings))
+        'p5': float(np.percentile(savings, 5)),
+        'p50': float(np.percentile(savings, 50)),
+        'p95': float(np.percentile(savings, 95)),
+        'mean': float(np.mean(savings)),
+        'stdDev': float(np.std(savings))
     }
-    
-    return results
 
-
-def calculate_percentiles(values: np.ndarray, percentiles: list = [5, 50, 95]) -> Dict[str, float]:
-    """
-    Calculate percentiles from an array of values.
-    
-    Args:
-        values: NumPy array of values
-        percentiles: List of percentile values to calculate (default: [5, 50, 95])
-    
-    Returns:
-        Dictionary mapping percentile names to values
-    """
-    result = {}
-    for p in percentiles:
-        key = f'p{p}'
-        result[key] = float(np.percentile(values, p))
-    return result
-
-
-def validate_config(config: Dict) -> Tuple[bool, str]:
-    """
-    Validate retirement simulation configuration.
-    
-    Args:
-        config: Configuration dictionary
-    
-    Returns:
-        Tuple of (is_valid, error_message)
-    """
-    required_fields = [
-        'initialSavings', 'monthlyContribution', 'yearsToRetirement',
-        'annualReturn', 'volatility', 'totalScenarios', 'shards'
-    ]
-    
-    # Check required fields
-    for field in required_fields:
-        if field not in config:
-            return False, f"Missing required field: {field}"
-    
-    # Validate ranges
-    if config['initialSavings'] < 0:
-        return False, "initialSavings must be >= 0"
-    
-    if config['monthlyContribution'] < 0:
-        return False, "monthlyContribution must be >= 0"
-    
-    if not (1 <= config['yearsToRetirement'] <= 50):
-        return False, "yearsToRetirement must be between 1 and 50"
-    
-    if not (-0.5 <= config['annualReturn'] <= 0.5):
-        return False, "annualReturn must be between -0.5 and 0.5"
-    
-    if not (0 <= config['volatility'] <= 1):
-        return False, "volatility must be between 0 and 1"
-    
-    if not (10000 <= config['totalScenarios'] <= 10000000):
-        return False, "totalScenarios must be between 10,000 and 10,000,000"
-    
-    if not (1 <= config['shards'] <= 100):
-        return False, "shards must be between 1 and 100"
-    
-    return True, ""
+    return results, savings.tolist()
