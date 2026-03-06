@@ -76,10 +76,11 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Generate unique job ID
         job_id = str(uuid.uuid4())
         
-        # Calculate shard distribution
+        # Calculate shard distribution (remainder added to last shard)
         total_scenarios = config['totalScenarios']
         num_shards = config['shards']
         scenarios_per_shard = total_scenarios // num_shards
+        remainder_scenarios = total_scenarios % num_shards
         
         # Create DynamoDB job record
         table = dynamodb.Table(JOBS_TABLE_NAME)
@@ -105,14 +106,16 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         for shard_id in range(num_shards):
             # Calculate seed for deterministic results
             seed = 12345 + shard_id
-            
+            # Add remainder scenarios to the last shard
+            shard_scenarios = scenarios_per_shard + (remainder_scenarios if shard_id == num_shards - 1 else 0)
+
             message = {
                 'Id': str(shard_id),
                 'MessageBody': json.dumps({
                     'jobId': job_id,
                     'shardId': shard_id,
                     'configS3Key': config_s3_key,
-                    'scenarios': scenarios_per_shard,
+                    'scenarios': shard_scenarios,
                     'seed': seed
                 })
             }
@@ -120,10 +123,13 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             # Send batch when we have 10 messages or it's the last shard
             if len(messages) == 10 or shard_id == num_shards - 1:
-                sqs_client.send_message_batch(
+                response = sqs_client.send_message_batch(
                     QueueUrl=WORK_QUEUE_URL,
                     Entries=messages
                 )
+                if response.get('Failed'):
+                    failed_ids = [f['Id'] for f in response['Failed']]
+                    raise RuntimeError(f"Failed to enqueue shard(s): {failed_ids}")
                 print(f"Enqueued batch of {len(messages)} messages")
                 messages = []
         
@@ -154,7 +160,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': 'Internal server error. Check logs for details.'})
         }
 
 
