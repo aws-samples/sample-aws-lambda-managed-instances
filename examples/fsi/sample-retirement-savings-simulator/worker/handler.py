@@ -191,16 +191,20 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             total = int(updated_item['totalShards'])
             
             if completed >= total:
-                table.update_item(
-                    Key={'jobId': job_id},
-                    UpdateExpression='SET #status = :status, completedAt = :completed',
-                    ExpressionAttributeNames={'#status': 'status'},
-                    ExpressionAttributeValues={
-                        ':status': 'COMPLETED',
-                        ':completed': datetime.utcnow().isoformat() + 'Z'
-                    }
-                )
-                print(f"Job {job_id} completed: {completed}/{total} shards")
+                try:
+                    table.update_item(
+                        Key={'jobId': job_id},
+                        UpdateExpression='SET #status = :status, completedAt = :completed',
+                        ExpressionAttributeNames={'#status': 'status'},
+                        ConditionExpression='#status <> :status',
+                        ExpressionAttributeValues={
+                            ':status': 'COMPLETED',
+                            ':completed': datetime.utcnow().isoformat() + 'Z'
+                        }
+                    )
+                    print(f"Job {job_id} completed: {completed}/{total} shards")
+                except dynamodb.meta.client.exceptions.ConditionalCheckFailedException:
+                    print(f"Job {job_id} already marked COMPLETED by another worker")
             
             
             # Emit CloudWatch EMF metrics
