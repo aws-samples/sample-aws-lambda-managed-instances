@@ -19,6 +19,14 @@ Parameters:
     Type: List<AWS::EC2::Subnet::Id>
     Description: List of subnet IDs (at least 2 in different AZs) for the capacity provider
 
+Globals:
+  Function:
+    Tracing: Active
+    Environment:
+      Variables:
+        POWERTOOLS_METRICS_NAMESPACE: RetirementSimulator/LMI
+        LOG_LEVEL: INFO
+
 Resources:
   ##############################################################
   # Security Group for LMI
@@ -387,6 +395,7 @@ Resources:
           JOBS_TABLE_NAME: !Ref JobsTable
           WORK_QUEUE_URL: !Ref WorkQueue
           INPUT_BUCKET: !Ref InputBucket
+          POWERTOOLS_SERVICE_NAME: job-submitter
       Events:
         SubmitJobApi:
           Type: Api
@@ -444,6 +453,7 @@ Resources:
           JOBS_TABLE_NAME: !Ref JobsTable
           INPUT_BUCKET: !Ref InputBucket
           OUTPUT_BUCKET: !Ref OutputBucket
+          POWERTOOLS_SERVICE_NAME: simulation-worker
       # LMI Configuration
       CapacityProviderConfig:
         Arn: !GetAtt ComputeCapacityProvider.Arn
@@ -476,6 +486,7 @@ Resources:
         Variables:
           JOBS_TABLE_NAME: !Ref JobsTable
           OUTPUT_BUCKET: !Ref OutputBucket
+          POWERTOOLS_SERVICE_NAME: aggregator
       Events:
         GetResultsApi:
           Type: Api

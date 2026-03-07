@@ -1,7 +1,7 @@
 """
 LMI Worker AWS Lambda Handler
 
-Processes retirement simulation shards with CloudWatch EMF metrics.
+Processes retirement simulation shards with AWS Lambda Powertools metrics.
 Designed for sustained 10-14 minute execution on LMI.
 """
 
@@ -13,6 +13,8 @@ import requests
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from simulator import simulate_retirement_savings
+from aws_lambda_powertools import Logger, Tracer, Metrics
+from aws_lambda_powertools.metrics import MetricUnit
 
 # Initialize AWS clients
 s3_client = boto3.client('s3')
@@ -22,6 +24,10 @@ dynamodb = boto3.resource('dynamodb')
 JOBS_TABLE_NAME = os.environ.get('JOBS_TABLE_NAME')
 INPUT_BUCKET = os.environ.get('INPUT_BUCKET')
 OUTPUT_BUCKET = os.environ.get('OUTPUT_BUCKET')
+
+logger = Logger()
+tracer = Tracer()
+metrics = Metrics()
 
 # Cache for EC2 metadata (fetched once per execution environment)
 _ec2_metadata_cache = None
@@ -84,13 +90,16 @@ def get_ec2_metadata() -> Dict[str, str]:
         
     except Exception as e:
         # If metadata fetch fails, log but continue (might be running in non-LMI environment)
-        print(f"Warning: Could not fetch EC2 metadata: {str(e)}")
+        logger.warning("Could not fetch EC2 metadata", error=str(e))
     
     # Cache for subsequent invocations in same execution environment
     _ec2_metadata_cache = metadata
     return metadata
 
 
+@logger.inject_lambda_context(log_event=False)
+@tracer.capture_lambda_handler
+@metrics.log_metrics(capture_cold_start_metric=True)
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Process a shard of retirement simulation scenarios.
@@ -106,7 +115,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     # Get EC2 metadata for placement tracking
     ec2_metadata = get_ec2_metadata()
-    
+    metrics.add_dimension(name="InstanceType", value=ec2_metadata['instanceType'])
+    metrics.add_dimension(name="MemorySize", value=str(context.memory_limit_in_mb))
+
     # Process each SQS message (typically one per invocation)
     for record in event['Records']:
         try:
@@ -118,7 +129,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             scenarios = message['scenarios']
             seed = message['seed']
             
-            print(f"Processing shard {shard_id} for job {job_id}")
+            logger.info("Processing shard", job_id=job_id, shard_id=shard_id)
             
             # Read configuration from S3
             io_start = time.time()
@@ -167,7 +178,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 ContentType='application/json'
             )
             
-            print(f"Wrote shard result to s3://{OUTPUT_BUCKET}/{output_key}")
+            logger.info("Wrote shard result to S3", bucket=OUTPUT_BUCKET, key=output_key)
             
             # Update DynamoDB job progress (atomic increment)
             table = dynamodb.Table(JOBS_TABLE_NAME)
@@ -202,45 +213,45 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             ':completed': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
                         }
                     )
-                    print(f"Job {job_id} completed: {completed}/{total} shards")
+                    logger.info("Job completed", job_id=job_id, completed=completed, total=total)
                 except dynamodb.meta.client.exceptions.ConditionalCheckFailedException:
-                    print(f"Job {job_id} already marked COMPLETED by another worker")
+                    logger.info("Job already marked completed by another worker", job_id=job_id)
             
             
-            # Emit CloudWatch EMF metrics
-            emit_metrics(
-                job_id=job_id,
-                shard_id=shard_id,
-                memory_size=context.memory_limit_in_mb,
-                scenarios=scenarios,
-                execution_ms=execution_time_ms,
-                compute_ms=compute_time_ms,
-                io_ms=io_time_ms,
-                scenarios_per_second=scenarios_per_second,
-                ms_per_scenario=ms_per_scenario,
-                ec2_metadata=ec2_metadata
-            )
+            # Emit metrics via Powertools (flushed automatically by @metrics.log_metrics decorator)
+            metrics.add_metric(name="ScenariosProcessed", unit=MetricUnit.Count, value=scenarios)
+            metrics.add_metric(name="ExecutionDuration", unit=MetricUnit.Milliseconds, value=execution_time_ms)
+            metrics.add_metric(name="ComputeTime", unit=MetricUnit.Milliseconds, value=compute_time_ms)
+            metrics.add_metric(name="IOTime", unit=MetricUnit.Milliseconds, value=io_time_ms)
+            metrics.add_metric(name="ScenariosPerSecond", unit=MetricUnit.Count, value=scenarios_per_second)
+            metrics.add_metric(name="MillisecondsPerScenario", unit=MetricUnit.Count, value=ms_per_scenario)
             
-            # Log structured summary
-            log_summary(
+            logger.info(
+                "Shard processing complete",
                 job_id=job_id,
                 shard_id=shard_id,
                 scenarios=scenarios,
                 years_simulated=config['yearsToRetirement'],
-                compute_time_ms=compute_time_ms,
-                io_time_ms=io_time_ms,
-                total_execution_ms=execution_time_ms,
-                scenarios_per_second=scenarios_per_second,
-                ms_per_scenario=ms_per_scenario,
-                memory_used_mb=context.memory_limit_in_mb,  # Approximate
-                results=results,
-                ec2_metadata=ec2_metadata
+                compute_time_ms=int(compute_time_ms),
+                io_time_ms=int(io_time_ms),
+                total_execution_ms=int(execution_time_ms),
+                scenarios_per_second=int(scenarios_per_second),
+                ms_per_scenario=round(ms_per_scenario, 2),
+                memory_used_mb=context.memory_limit_in_mb,
+                instance_id=ec2_metadata['instanceId'],
+                instance_type=ec2_metadata['instanceType'],
+                availability_zone=ec2_metadata['availabilityZone'],
+                execution_environment=ec2_metadata['executionEnvironment'],
+                results_p5=int(results['p5']),
+                results_p50=int(results['p50']),
+                results_p95=int(results['p95']),
+                results_mean=int(results['mean'])
             )
             
-            print(f"Shard {shard_id} completed successfully")
+            logger.info("Shard completed successfully", job_id=job_id, shard_id=shard_id)
             
         except Exception as e:
-            print(f"Error processing shard: {str(e)}")
+            logger.exception("Error processing shard")
             # Let SQS retry mechanism handle failures
             raise
     
@@ -249,100 +260,3 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'body': json.dumps({'message': 'Shard processed successfully'})
     }
 
-
-def emit_metrics(
-    job_id: str,
-    shard_id: int,
-    memory_size: int,
-    scenarios: int,
-    execution_ms: float,
-    compute_ms: float,
-    io_ms: float,
-    scenarios_per_second: float,
-    ms_per_scenario: float,
-    ec2_metadata: Dict[str, str]
-) -> None:
-    """
-    Emit CloudWatch Embedded Metric Format (EMF) metrics.
-    
-    This avoids PutMetricData API calls and uses structured logging instead.
-    """
-    emf_log = {
-        "_aws": {
-            "Timestamp": int(time.time() * 1000),
-            "CloudWatchMetrics": [{
-                "Namespace": "RetirementSimulator/LMI",
-                "Dimensions": [["InstanceType", "MemorySize"]],
-                "Metrics": [
-                    {"Name": "ScenariosProcessed", "Unit": "Count"},
-                    {"Name": "ExecutionDuration", "Unit": "Milliseconds"},
-                    {"Name": "ComputeTime", "Unit": "Milliseconds"},
-                    {"Name": "IOTime", "Unit": "Milliseconds"},
-                    {"Name": "ScenariosPerSecond", "Unit": "Count/Second"},
-                    {"Name": "MillisecondsPerScenario", "Unit": "Milliseconds"}
-                ]
-            }]
-        },
-        "JobId": job_id,
-        "ShardId": str(shard_id),
-        "MemorySize": str(memory_size),
-        "InstanceId": ec2_metadata['instanceId'],
-        "InstanceType": ec2_metadata['instanceType'],
-        "AvailabilityZone": ec2_metadata['availabilityZone'],
-        "ExecutionEnvironment": ec2_metadata['executionEnvironment'],
-        "ScenariosProcessed": scenarios,
-        "ExecutionDuration": execution_ms,
-        "ComputeTime": compute_ms,
-        "IOTime": io_ms,
-        "ScenariosPerSecond": scenarios_per_second,
-        "MillisecondsPerScenario": ms_per_scenario
-    }
-    
-    # Print EMF log (CloudWatch will parse it automatically)
-    print(json.dumps(emf_log))
-
-
-def log_summary(
-    job_id: str,
-    shard_id: int,
-    scenarios: int,
-    years_simulated: int,
-    compute_time_ms: float,
-    io_time_ms: float,
-    total_execution_ms: float,
-    scenarios_per_second: float,
-    ms_per_scenario: float,
-    memory_used_mb: int,
-    results: Dict,
-    ec2_metadata: Dict[str, str]
-) -> None:
-    """
-    Log structured summary for CloudWatch Insights queries.
-    """
-    summary = {
-        "timestamp": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
-        "level": "INFO",
-        "message": "Shard processing complete",
-        "jobId": job_id,
-        "shardId": shard_id,
-        "scenarios": scenarios,
-        "yearsSimulated": years_simulated,
-        "computeTimeMs": int(compute_time_ms),
-        "ioTimeMs": int(io_time_ms),
-        "totalExecutionMs": int(total_execution_ms),
-        "scenariosPerSecond": int(scenarios_per_second),
-        "msPerScenario": round(ms_per_scenario, 2),
-        "memoryUsedMB": memory_used_mb,
-        "instanceId": ec2_metadata['instanceId'],
-        "instanceType": ec2_metadata['instanceType'],
-        "availabilityZone": ec2_metadata['availabilityZone'],
-        "executionEnvironment": ec2_metadata['executionEnvironment'],
-        "results": {
-            "p5": int(results['p5']),
-            "p50": int(results['p50']),
-            "p95": int(results['p95']),
-            "mean": int(results['mean'])
-        }
-    }
-    
-    print(json.dumps(summary))

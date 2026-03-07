@@ -9,6 +9,7 @@ import boto3
 import os
 import numpy as np
 from typing import Dict, Any, List
+from aws_lambda_powertools import Logger, Tracer, Metrics
 
 # Initialize AWS clients
 s3_client = boto3.client('s3')
@@ -18,7 +19,14 @@ dynamodb = boto3.resource('dynamodb')
 JOBS_TABLE_NAME = os.environ.get('JOBS_TABLE_NAME')
 OUTPUT_BUCKET = os.environ.get('OUTPUT_BUCKET')
 
+logger = Logger()
+tracer = Tracer()
+metrics = Metrics()
 
+
+@logger.inject_lambda_context(log_event=True)
+@tracer.capture_lambda_handler
+@metrics.log_metrics(capture_cold_start_metric=True)
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Aggregate simulation results for a completed job.
@@ -82,7 +90,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'No shard results found'})
             }
         
-        print(f"Found {len(shard_keys)} shard results for job {job_id}")
+        logger.info("Found shard results", job_id=job_id, shard_count=len(shard_keys))
         
         # Fetch and aggregate shard results
         # Combine raw final savings from all shards for correct percentile calculation
@@ -164,9 +172,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
         
     except Exception as e:
-        print(f"Error aggregating results: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error aggregating results")
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json'},

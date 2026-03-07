@@ -10,6 +10,7 @@ import boto3
 import os
 from datetime import datetime, timezone
 from typing import Dict, Any
+from aws_lambda_powertools import Logger, Tracer, Metrics
 
 # Initialize AWS clients
 s3_client = boto3.client('s3')
@@ -21,7 +22,14 @@ JOBS_TABLE_NAME = os.environ.get('JOBS_TABLE_NAME')
 WORK_QUEUE_URL = os.environ.get('WORK_QUEUE_URL')
 INPUT_BUCKET = os.environ.get('INPUT_BUCKET')
 
+logger = Logger()
+tracer = Tracer()
+metrics = Metrics()
 
+
+@logger.inject_lambda_context(log_event=True)
+@tracer.capture_lambda_handler
+@metrics.log_metrics(capture_cold_start_metric=True)
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Create a retirement simulation job and enqueue work shards.
@@ -59,14 +67,14 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         # Read configuration from S3
-        print(f"Reading config from s3://{INPUT_BUCKET}/{config_s3_key}")
+        logger.info("Reading config from S3", bucket=INPUT_BUCKET, key=config_s3_key)
         config_obj = s3_client.get_object(Bucket=INPUT_BUCKET, Key=config_s3_key)
         config = json.loads(config_obj['Body'].read().decode('utf-8'))
         
         # Validate configuration
         validation_error = validate_config(config)
         if validation_error:
-            print(f"Validation error: {validation_error}")
+            logger.warning("Config validation failed", error=validation_error)
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json'},
@@ -99,7 +107,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         )
         
-        print(f"Created job record: {job_id}")
+        logger.info("Created job record", job_id=job_id)
         
         # Enqueue shard messages to SQS (batch of 10)
         messages = []
@@ -130,7 +138,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 if response.get('Failed'):
                     failed_ids = [f['Id'] for f in response['Failed']]
                     raise RuntimeError(f"Failed to enqueue shard(s): {failed_ids}")
-                print(f"Enqueued batch of {len(messages)} messages")
+                logger.info("Enqueued SQS batch", count=len(messages))
                 messages = []
         
         # Update job status to RUNNING
@@ -141,7 +149,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             ExpressionAttributeValues={':status': 'RUNNING'}
         )
         
-        print(f"Job {job_id} submitted with {num_shards} shards")
+        logger.info("Job submitted", job_id=job_id, num_shards=num_shards)
         
         return {
             'statusCode': 200,
@@ -156,7 +164,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
         
     except Exception as e:
-        print(f"Error submitting job: {str(e)}")
+        logger.exception("Error submitting job")
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json'},
