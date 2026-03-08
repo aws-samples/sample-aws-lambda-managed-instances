@@ -1,6 +1,7 @@
 # Retirement Savings Simulator on Lambda Managed Instances
 
-An AWS Sample demonstrating Lambda Managed Instances (LMI) for sustained CPU-intensive Monte Carlo simulation.
+An AWS Sample demonstrating Lambda Managed Instances (LMI) for sustained
+CPU-intensive Monte Carlo simulation.
 
 ---
 
@@ -10,23 +11,18 @@ An AWS Sample demonstrating Lambda Managed Instances (LMI) for sustained CPU-int
 
 ---
 
+
 ## Problem Statement
 
 ### The Business Scenario
 
-You run a financial advisory firm with 100 advisors who meet with 10 clients daily. Each client asks the same critical question: "Will I have enough money to retire comfortably?" Your advisors must provide personalized analysis based on each client's savings, contributions, timeline, and risk tolerance. Simple formulas like "Save $1,000/month for 20 years at 7% returns = $X" mislead clients because markets don't deliver 7% every year—some years surge 20%, others crash 15%, and the sequence matters enormously. Your advisors run Monte Carlo simulations that analyze hundreds of thousands of market scenarios, showing clients the full range of outcomes from worst case (5th percentile) to best case (95th percentile) plus the probability of hitting their goals. The scale: 100 advisors × 10 clients daily × multiple runs per client = 1,000+ simulations daily, each requiring 10-15 minutes of sustained CPU-intensive computation—exactly the workload *Lambda Managed Instances* handles efficiently.
+You run a financial advisory firm: 100 advisors, 10 clients each daily, each asking "Will I have enough to retire?" Simple formulas mislead—markets don't deliver a steady 7% annually. Monte Carlo simulation shows the full distribution of outcomes across hundreds of thousands of scenarios, from worst case (5th percentile) to best case (95th percentile), with the probability of hitting each client's goal. At 1,000+ simulations daily, each requiring 10–15 minutes of sustained CPU-intensive compute, this is exactly the workload *Lambda Managed Instances* handles efficiently.
 
 ### Why Monte Carlo Simulation?
 
-Monte Carlo simulation works like a weather forecast for retirement savings. Instead of one prediction ("You'll have $900K"), it runs thousands of scenarios: market surges early then slows ($1.2M), crashes in year 5 then recovers ($800K), stays steady throughout ($950K), plus a million more variations. Each scenario generates random market returns for every month (240 months for 20 years), compounds returns month-by-month with contributions, and calculates the final portfolio value—comprehensive analysis requires 100,000 to 1,000,000 scenarios (each involving hundreds of calculations) totaling billions of floating-point operations. Running 1 million scenarios sequentially on a laptop takes 30-60 minutes, but financial advisors need results in minutes to have interactive conversations with clients.
+Instead of one prediction ("You'll have $900K"), Monte Carlo runs hundreds of thousands of scenarios using Geometric Brownian Motion—random monthly returns compounded over years, producing realistic paths through bull markets, crashes, and recoveries. Running 1 million scenarios totals billions of floating-point operations: 30–60 minutes sequentially, but your advisors need results in minutes. The output answers the three questions clients care about: worst realistic outcome (5th percentile), most likely outcome (median), and probability of reaching a savings target.
 
-This answers critical questions: "What's the worst realistic outcome?" (5th percentile), "What's most likely?" (median), "What are my chances of hitting $1M?" (probability). The simulation uses Geometric Brownian Motion—markets move randomly but trend upward over time. Each month might gain 2%, lose 3%, or stay flat, and over 20 years you get realistic paths including bull markets, bear markets, and recoveries. Every simulation creates a different sequence of good and bad years, so running it 1 million times reveals all possible futures from worst to best case.
-
-That's a lot of math for one computer.
-
-**Why This Needs Parallel Processing**: Monte Carlo simulation is "embarrassingly parallel"—each scenario runs independently without communicating with others, perfect for map-reduce processing where you split work across hundreds of workers, process scenarios in isolation, then aggregate results to calculate percentiles and probabilities. We chose this example because it demonstrates LMI's strength: sustained CPU-intensive workloads that scale horizontally without complex coordination.
-
-**How We Achieve Parallel Processing**: When a user requests 1 million scenarios, a job coordinator breaks this into 1,000 chunks of 1,000 scenarios each and places them in a work queue. Multiple compute workers pull work items continuously, each processing its assigned scenarios independently—one worker simulates scenarios 1-1,000 while another handles 500,001-501,000, all running simultaneously. Workers store results in a data store and update a job tracker, and once all chunks complete, the system aggregates final results. This pattern—coordinator splits work, queue distributes it, workers process in parallel, data store collects results—can help achieve linear scaling where 10 workers may turn a 30-minute job into approximately 3 minutes.
+Simulation is "embarrassingly parallel"—each scenario runs independently. When you request 1 million scenarios, a coordinator splits the work into 1,000 chunks and queues them. Workers pull chunks and process independently, then an aggregator combines the results. Ten workers can reduce a 30-minute job to approximately 3 minutes.
 
 ![Parallel Processing Architecture](./assets/SimulationFLow.png)
 
@@ -34,7 +30,11 @@ That's a lot of math for one computer.
 
 ### What Goes In (Input)
 
-An advisor provides a client's retirement profile: initial savings ($100K), monthly contribution ($1K), years to retirement (20), expected annual return (7%), and market volatility (15%)—for example, a 45-year-old with $100K saved, contributing $1,000/month, retiring at 65 with a balanced portfolio.
+You provide a client's retirement profile: initial savings (
+$100K), monthly contribution ($1K), years to retirement (20), expected annual
+return (7%), and market volatility (15%)—for example, a 45-year-old with
+$100K saved, contributing $1,000/month, retiring at 65 with a balanced
+portfolio.
 
 ```json
 {
@@ -46,68 +46,140 @@ An advisor provides a client's retirement profile: initial savings ($100K), mont
 }
 ```
 
-The system adds simulation parameters (`totalScenarios`: 1M, `shards`: 10) and stores the complete configuration in S3.
+The system adds simulation parameters (`totalScenarios`: 1M, `shards`: 10) and
+stores the complete configuration in S3.
 
 ### What Comes Out (Output)
 
-The simulation produces a distribution showing worst case ($450K at 5th percentile), most likely ($850K median), and best case ($1.5M at 95th percentile)—far more valuable than a single number because it shows the range of uncertainty and helps clients make informed decisions about saving more or working longer.
+The simulation produces a distribution showing worst case (
+$450K at 5th percentile), most likely ($850K median), and best case ($1.5M at
+95th percentile)—far more valuable than a single number because it shows the
+range of uncertainty and helps clients make informed decisions about saving more
+or working longer.
 
-```
+```text
 RETIREMENT SAVINGS DISTRIBUTION
-------------------------------------------------------------
-  5th Percentile (worst case):   $450,000
- 50th Percentile (median):       $850,000
- 95th Percentile (best case):    $1,500,000
- Mean (average):                 $900,000
- Standard Deviation:             $285,000
+------------------------------------------------
+ 5th Percentile (worst case):       $450,000.00
+ 50th Percentile (median):          $850,000.00
+ 95th Percentile (best case):     $1,500,000.00
+ Mean (average):                    $900,000.00
+ Standard Deviation:                $285,000.00
 ```
+
 ## Solution Using Lambda Managed Instances (LMI)
 
-AWS Lambda Managed Instances (LMI) runs AWS Lambda functions on longer-lived AWS-managed compute instances while preserving Lambda's programming model and developer experience. LMI helps reduce cold starts (NumPy loads once and stays warm across invocations), provides cost-efficient pricing (Amazon EC2 instance hours instead of per-millisecond billing), enables right-sized compute (compute-optimized instances with configurable memory-to-vCPU ratios), supports high concurrency (10 invocations per instance), and is designed to minimize operational overhead (no container images, cluster management, or capacity planning).
+AWS Lambda Managed Instances (LMI) runs AWS Lambda functions on longer-lived
+AWS-managed compute instances while preserving Lambda's programming model and
+developer experience. LMI helps reduce cold starts (NumPy loads once and stays
+warm across invocations), provides cost-efficient pricing (Amazon EC2 instance
+hours instead of per-millisecond billing), enables right-sized compute
+(compute-optimized instances with configurable memory-to-vCPU ratios), supports
+high concurrency (10 invocations per instance), and is designed to minimize
+operational overhead (no container images, cluster management, or capacity
+planning).
 
 ![AWS Parallel Processing Architecture](./assets/Architecture.png)
 
 ## Prerequisites
 
-AWS CLI, AWS SAM CLI (v1.152.0+), Python 3.13, Bash shell, and an existing Amazon VPC with 2+ private subnets across availability zones and VPC endpoints for Amazon S3/Amazon DynamoDB/Amazon SQS (recommended for private subnets).
+AWS CLI, AWS SAM CLI (v1.152.0+), Python 3.13, and Bash shell.
 
-**Cost Warning:** This sample creates billable AWS resources including EC2 instances (managed by AWS Lambda), DynamoDB tables, S3 buckets, and SQS queues. Running the load test can incur costs of approximately $7-10. You will be charged for these resources until you delete the stack.
+**VPC with VPC Endpoints (required):** LMI runs Lambda functions on EC2 instances
+inside your VPC. These instances need VPC endpoints to reach AWS services. Your
+VPC must have:
+
+- 2+ private subnets across availability zones
+- **Gateway VPC endpoints** for Amazon S3 and Amazon DynamoDB (free)
+- **Interface VPC endpoints** for Amazon SQS, Amazon CloudWatch Logs, and Amazon CloudWatch Monitoring
+
+If you don't have a VPC with these endpoints, deploy the included
+`vpc-template.yaml` first (see [Quick Start](#quick-start) step 1). Without VPC
+endpoints, the worker function will not be able to process messages or write logs.
+
+**Cost Warning:** This sample creates billable AWS resources. The primary cost
+drivers are EC2 instances (c6i.2xlarge at $0.34/hr each, managed by LMI) and
+interface VPC endpoints ($0.01/hr per endpoint per AZ). LMI keeps instances
+running after jobs complete, so **costs accrue while the stack is deployed**:
+
+| Component | Per hour (idle) | Per day (idle) |
+|---|---|---|
+| EC2 instances (minimum for AZ resiliency) | ~$0.68 | ~$16.32 |
+| Interface VPC endpoints (4 endpoints × 2 AZs) | ~$0.08 | ~$1.92 |
+| **Total idle cost** | **~$0.76** | **~$18.24** |
+
+Running a single job adds negligible cost (~$0.01 for SQS/DynamoDB/S3). The load
+test (240 clients, 7 instances, ~1hr) adds ~$2.50 in EC2 time. **Delete the stack
+promptly after testing to avoid ongoing charges.**
 
 ### IAM Roles and Permissions
 
-This sample automatically creates IAM roles following the principle of least privilege. The CloudFormation template creates four roles:
+This sample automatically creates IAM roles following the principle of least
+privilege. The CloudFormation template creates four roles:
 
 1. **SubmitterRole** - Job submission Lambda function with permissions to read S3 configuration files, write to DynamoDB jobs table, and send messages to SQS
 2. **WorkerRole** - Worker Lambda function with VPC access, permissions to read S3 input, write S3 output, update DynamoDB, and process SQS messages
 3. **AggregatorRole** - Results aggregation Lambda function with read-only access to S3 output bucket and DynamoDB jobs table
 4. **CapacityProviderOperatorRole** - LMI capacity provider with EC2 permissions to launch and manage instances on your behalf
 
-These are NOT service-linked roles. The template creates them with minimal required permissions scoped to specific resources (buckets, tables, queues) created by this stack. Review the IAM policies in `template.yaml` (lines 136-240) before deployment to ensure they meet your security requirements.
+These are NOT service-linked roles. The template creates them with minimal
+required permissions scoped to specific resources (buckets, tables, queues)
+created by this stack. Review the IAM policies in `template.yaml` (lines
+136-240) before deployment to ensure they meet your security requirements.
 
 ### VPC and Network Security
 
-The Worker Lambda function runs inside your VPC to demonstrate LMI networking capabilities. The template creates a security group with the following configuration:
+LMI runs Lambda functions on EC2 instances inside your VPC. Unlike standard
+Lambda functions that access AWS services via the public internet, LMI instances
+in private subnets require VPC endpoints to reach services like SQS, S3, and
+DynamoDB. Without these endpoints, the worker function cannot process messages,
+store results, or write logs.
 
-- **Egress Rules**: HTTPS only (port 443) to 0.0.0.0/0 for AWS API calls
-- **Ingress Rules**: None (Lambda functions don't accept inbound connections)
-- **VPC Requirements**: 
-  - Private subnets with NAT Gateway OR VPC endpoints for AWS services (S3, DynamoDB, SQS, Lambda)
-  - Subnets must span at least 2 Availability Zones for high availability
-  - Sufficient IP addresses for Lambda ENIs (recommend /24 or larger subnets)
+The application template creates a security group with the following configuration:
 
-The security group is automatically created by the CloudFormation template. If you prefer to use an existing security group, modify the `LMISecurityGroup` resource in `template.yaml`.
+- **Egress Rules**: HTTPS only (port 443) to 0.0.0.0/0 for AWS API calls via VPC endpoints
+- **Ingress Rules**: None (Lambda functions are invoked via the AWS API)
+
+**VPC Requirements:**
+
+| Endpoint | Type | Purpose | Cost |
+|----------|------|---------|------|
+| Amazon S3 | Gateway | Read configs, write results | Free |
+| Amazon DynamoDB | Gateway | Update job progress | Free |
+| Amazon SQS | Interface | Delete processed messages | $0.01/hr per AZ |
+| CloudWatch Logs | Interface | Write execution logs | $0.01/hr per AZ |
+| CloudWatch Monitoring | Interface | Publish EMF metrics | $0.01/hr per AZ |
+| AWS X-Ray | Interface | Distributed tracing | $0.01/hr per AZ |
+
+If you don't have a VPC with these endpoints, use the included `vpc-template.yaml`
+(see [Quick Start](#quick-start) step 1). If you bring your own VPC, ensure the
+subnets span at least 2 Availability Zones and have sufficient IP addresses for
+EC2 instances (recommend /24 or larger subnets).
 
 ## Quick Start
 
-### 1. Prepare VPC Information
+### 1. Deploy VPC Infrastructure (if needed)
 
-You'll need the following from your existing VPC:
-- VPC ID (such as `vpc-0123456789abcdef0`)
-- Subnet IDs (at least 2, such as `subnet-abc123,subnet-def456`)
+If you already have a VPC with the required VPC endpoints (see [Prerequisites](#prerequisites)), skip to step 2 and note your VPC ID and subnet IDs.
 
-**Note:** The subnets should be private subnets with NAT Gateway or VPC endpoints for AWS services (S3, DynamoDB, SQS, Lambda).
+Otherwise, deploy the included VPC template:
 
-### 2. Deploy the Stack
+```bash
+aws cloudformation deploy \
+  --template-file vpc-template.yaml \
+  --stack-name retirement-sim-vpc \
+  --parameter-overrides ProjectName=retirement-sim
+```
+
+Get the VPC outputs for the next step:
+
+```bash
+aws cloudformation describe-stacks \
+  --stack-name retirement-sim-vpc \
+  --query 'Stacks[0].Outputs' --output table
+```
+
+### 2. Deploy the Application Stack
 
 ```bash
 sam build
@@ -115,10 +187,11 @@ sam deploy --guided
 ```
 
 Follow the prompts:
+
 - Stack name: `retirement-sim`
 - AWS Region: `us-east-1` (or your preferred region)
-- **VpcId**: Enter your VPC ID
-- **SubnetIds**: Enter comma-separated subnet IDs (such as `subnet-abc123,subnet-def456`)
+- **VpcId**: Enter your VPC ID (from step 1 or your existing VPC)
+- **SubnetIds**: Enter comma-separated subnet IDs (at least 2, such as `subnet-abc123,subnet-def456`)
 - Confirm changes: `Y`
 - Allow SAM CLI IAM role creation: `Y`
 - Save arguments to configuration: `Y`
@@ -132,7 +205,7 @@ cd scripts
 
 Available configurations: `conservative-saver` (low risk, 20 years), `aggressive-investor` (high risk, 30 years), `young-starter` (long horizon, 40 years), `near-retirement` (short horizon, 5 years).
 
-### 3. Submit a Job
+### 4. Submit a Job
 
 Get the API endpoint from AWS CloudFormation outputs:
 
@@ -153,7 +226,7 @@ curl -X POST $API_ENDPOINT \
 
 This returns a Job ID - save it for checking status.
 
-### 4. Check Job Status
+### 5. Check Job Status
 
 ```bash
 ./check-status.sh <job-id>
@@ -161,7 +234,7 @@ This returns a Job ID - save it for checking status.
 
 The job will take approximately 12 minutes to complete.
 
-### 5. Get Results
+### 6. Get Results
 
 Once the job is completed, fetch results via API:
 
@@ -179,7 +252,7 @@ This returns aggregated results with retirement savings distribution (P5, P50, P
 
 ## Sample Output
 
-```
+```text
 RETIREMENT SAVINGS SIMULATION RESULTS
 ============================================================
 
@@ -217,7 +290,7 @@ COST EFFICIENCY
 
 **Objective:** Validate LMI performance under sustained production load simulating 240 financial advisors analyzing client retirement portfolios simultaneously.
 
-**Test design:** We configured four Amazon EventBridge schedulers to submit 1 job/minute each over 60 minutes, emulating continuous client requests. Each job analyzed 1 million Monte Carlo scenarios split across 10 parallel workers, generating 24,000 Lambda invocations that processed 2.4 billion scenarios total.
+**Test design:** Four Amazon EventBridge schedulers submitted 1 job/minute each over 60 minutes, emulating continuous client requests. Each job analyzed 1 million Monte Carlo scenarios split across 10 parallel workers, generating 24,000 Lambda invocations that processed 2.4 billion scenarios total.
 
 **Scale:** 240 client analyses, 40 million scenarios/minute sustained throughput.
 
@@ -241,7 +314,7 @@ LMI provisioned 16 execution environments across 7 EC2 instances, delivering 160
 
 **23:42 UTC - Test complete**
 
-We analyzed 240 clients, processed 2.4 billion scenarios, and achieved zero errors with 100% success rate. Queue flat-lined at zero.
+The test analyzed 240 clients, processed 2.4 billion scenarios, and achieved zero errors with 100% success rate. Queue flat-lined at zero.
 
 **Key insight:** Amazon SQS absorbed the 10-minute scale-up burst without dropping messages. Lambda's event source mapping automatically scaled polling concurrency as capacity became available. This configuration required minimal manual tuning. Once at full capacity, the system maintained steady-state processing matching incoming rate (4 jobs/minute).
 
@@ -278,6 +351,7 @@ We analyzed 240 clients, processed 2.4 billion scenarios, and achieved zero erro
 ### Monitoring LMI
 
 LMI metrics are split across two CloudWatch dimensions:
+
 - **Alias (live)**: Invocations, Errors, Throttles, Duration
 - **Version ($LATEST or numbered)**: CPU Utilization, Memory Utilization, Concurrency, Execution Environment Count
 
@@ -288,6 +362,7 @@ Create a unified dashboard combining both views to monitor LMI performance effec
 ### CloudWatch Metrics
 
 The sample emits custom metrics to Amazon CloudWatch:
+
 - Namespace: `RetirementSimulator/LMI`
 - Metrics: ScenariosProcessed, ExecutionDuration, ScenariosPerSecond, etc.
 
@@ -296,6 +371,7 @@ View metrics in CloudWatch Console or create dashboards.
 ### Production Monitoring Best Practices
 
 **Key Metrics to Monitor:**
+
 - **Lambda Invocations**: Track successful vs failed invocations to detect processing issues
 - **Throttles**: Monitor throttling events to identify capacity constraints requiring pre-warming or increased limits
 - **Duration**: Watch P50, P90, P99 latencies to detect performance degradation
@@ -305,6 +381,7 @@ View metrics in CloudWatch Console or create dashboards.
 - **Error Rates**: Set alarms on Lambda errors, DLQ messages, and failed job counts
 
 **Recommended CloudWatch Alarms:**
+
 - Lambda error rate > 1% over 5 minutes
 - SQS queue depth > 1000 messages for > 10 minutes
 - Lambda throttles > 10 over 5 minutes
@@ -312,12 +389,14 @@ View metrics in CloudWatch Console or create dashboards.
 - Worker function duration > 800 seconds (approaching 900s timeout)
 
 **Logging Strategy:**
+
 - Lambda functions log to CloudWatch Logs with 7-day retention (configurable in template)
 - Worker functions emit structured JSON logs with job/shard context for correlation
 - Use CloudWatch Logs Insights to query across invocations: `fields @timestamp, jobId, shardId, scenarios, executionMs | filter jobId = "your-job-id"`
 - Enable X-Ray tracing on API Gateway (already configured) to trace request flows
 
 **Cost Monitoring:**
+
 - Tag all resources with `Project: retirement-sim` for cost allocation
 - Monitor EC2 instance hours from LMI capacity provider
 - Track S3 storage costs for input/output buckets
@@ -325,20 +404,24 @@ View metrics in CloudWatch Console or create dashboards.
 - Use AWS Cost Explorer to analyze costs by service and tag
 
 ## Cleanup
+
 **Warning:** Deleting the stack will permanently delete all data in the S3 buckets and DynamoDB table, including simulation results and job history. Make sure to back up any data you need before proceeding.
 
-To delete all resources:
+Delete the application stack first, then the VPC stack (if deployed):
 
 ```bash
 sam delete
-```
 
+# If you deployed the VPC template:
+aws cloudformation delete-stack --stack-name retirement-sim-vpc
+```
 
 ## Conclusion
 
 This sample demonstrates how AWS Lambda Managed Instances (LMI) can efficiently handle sustained CPU-intensive workloads like Monte Carlo simulations. By running Lambda functions on longer-lived EC2 instances, LMI provides the cost efficiency of EC2 pricing with the simplicity of Lambda's programming model.
 
 Key takeaways:
+
 - LMI is well-suited for parallel batch processing workloads that require sustained compute
 - The combination of SQS for work distribution and LMI for processing enables linear scaling
 - Cost per simulation ($0.03-0.04 per million scenarios) makes this approach practical for production use
