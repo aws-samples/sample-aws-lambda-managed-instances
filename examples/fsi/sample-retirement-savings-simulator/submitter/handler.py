@@ -172,6 +172,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
 
 
+@tracer.capture_method
 def validate_config(config: Dict) -> str:
     """
     Validate configuration parameters.

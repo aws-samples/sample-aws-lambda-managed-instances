@@ -36,6 +36,7 @@ processor = BatchProcessor(event_type=EventType.SQS, raise_on_entire_batch_failu
 _ec2_metadata_cache = None
 
 
+@tracer.capture_method
 def get_ec2_metadata() -> Dict[str, str]:
     """
     Fetch EC2 instance metadata for LMI placement tracking.
@@ -100,6 +101,7 @@ def get_ec2_metadata() -> Dict[str, str]:
     return metadata
 
 
+@tracer.capture_method
 def record_handler(record: SQSRecord) -> None:
     """Process a single SQS record containing one simulation shard."""
     start_time = time.time()
