@@ -445,9 +445,9 @@ Resources:
       Role: !GetAtt WorkerRole.Arn
       MemorySize: 4096  # 4 GB memory for numpy initialization
       Timeout: 900  # 15 minutes
-      AutoPublishAlias: live  # Required for LMI - automatically publishes versions
-      DeploymentPreference:
-        Type: AllAtOnce  # Deploy immediately without gradual rollout
+      AutoPublishAlias: live  # Required by SAM for VersionDeletionPolicy
+      VersionDeletionPolicy: Delete
+      PublishToLatestPublished: True  # Publishes $LATEST.PUBLISHED version for LMI routing
       Environment:
         Variables:
           JOBS_TABLE_NAME: !Ref JobsTable
