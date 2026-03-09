@@ -1,0 +1,83 @@
+/* Methodology Panel - Simple text layout with line breaks */
+.methodology-panel {
+  background: #fafafa;
+  border: 1px solid #d5dbdb;
+  border-radius: 2px;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.methodology-panel h2 {
+  margin: 0 0 1rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #687078;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calc-placeholder {
+  font-size: 0.75rem;
+  color: #687078;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Simple text flow layout with line breaks */
+.calc-steps-grid {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.9;
+  color: #545b64;
+}
+
+.calc-step {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.calc-line {
+  display: inline;
+  margin: 0;
+  font-size: 0.75rem;
+  color: #545b64;
+}
+
+.calc-line strong {
+  color: #16191f;
+  font-weight: 700;
+}
+
+.calc-line-bold {
+  display: inline;
+  font-weight: 700;
+  color: #16191f;
+}
+
+.calc-total {
+  display: inline;
+  font-weight: 700;
+  color: #ec7211;
+}
+
+.calc-section-divider {
+  display: block;
+  height: 1px;
+  background: #d5dbdb;
+  margin: 0.75rem 0;
+}
+
+.calc-footer {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #d5dbdb;
+  font-size: 0.7rem;
+  color: #687078;
+  text-align: center;
+}
+
+.calc-footer p {
+  margin: 0;
+}
+
+

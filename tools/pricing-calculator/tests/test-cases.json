@@ -1,0 +1,1766 @@
+[
+  {
+    "name": "Basic Calculation",
+    "input": {
+      "runtime": "python",
+      "targetConcurrency": 100,
+      "memoryPerExec": 512,
+      "instanceType": "c7g.xlarge",
+      "requestsPerMonth": 1000000,
+      "durationSec": 60,
+      "arch": "arm64",
+      "savingsPlan": "none",
+      "workloadType": "balanced",
+      "azConfig": "3az"
+    },
+    "output": {
+      "capacity": {
+        "concurrency_per_vcpu": 4,
+        "function_memory_mb": 2048,
+        "vcpus_per_env": 1,
+        "sustainable_concurrency_per_env": 4,
+        "sustainable_concurrency_per_vcpu": 4,
+        "environments_needed": 25,
+        "envs_per_instance": 3,
+        "base_instances": 9,
+        "instances_with_buffer": 14,
+        "scaling_buffer": 1.5,
+        "cpu_adjustment": 1,
+        "az_config": "3 AZ (Standard)",
+        "lmi_packing_efficiency": 0.8,
+        "ec2_packing_efficiency": 0.6,
+        "utilization_factor": 0.25,
+        "lambda_cpu_usage": 25
+      },
+      "lmi_cost": {
+        "ec2_cost": 1481.8999999999999,
+        "management_fee": 222.28499999999997,
+        "request_cost": 0.2,
+        "total_cost": 1704.385,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0
+      },
+      "standard_lambda_cost": {
+        "compute_cost": 408,
+        "request_cost": 0.2,
+        "total_cost": 408.2,
+        "gb_seconds": 30000000,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "price_per_ms": 6.8e-9
+      },
+      "ec2_cost": {
+        "num_instances": 19,
+        "ec2_on_demand_monthly": 2011.1499999999999,
+        "ec2_after_discount": 2011.1499999999999,
+        "total_cost": 2011.1499999999999,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "packing_efficiency": 0.6
+      },
+      "pricing_variants": {
+        "lambda": {
+          "onDemand": {
+            "compute_cost": 408,
+            "request_cost": 0.2,
+            "total_cost": 408.2,
+            "gb_seconds": 30000000,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP1yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP3yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          }
+        },
+        "lmi": {
+          "onDemand": {
+            "ec2_cost": 1481.8999999999999,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1704.385,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0
+          },
+          "computeSP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1230.177,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "computeSP3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 741.15,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.65
+          },
+          "ec2SP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1230.177,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "reserved3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 741.15,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65
+          }
+        },
+        "ec2": {
+          "onDemand": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 2011.1499999999999,
+            "total_cost": 2011.1499999999999,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "packing_efficiency": 0.6
+          },
+          "ec2SP1yr": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 1367.5819999999999,
+            "total_cost": 1367.5819999999999,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32,
+            "packing_efficiency": 0.6
+          },
+          "reserved3yr": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 703.9024999999999,
+            "total_cost": 703.9024999999999,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65,
+            "packing_efficiency": 0.6
+          }
+        }
+      },
+      "comparison": {
+        "savings_monthly_vs_std": -1296.185,
+        "savings_percent_vs_std": -317.53674669279764,
+        "is_lmi_cheaper_than_std": false,
+        "savings_monthly_vs_ec2": 306.7649999999999,
+        "savings_percent_vs_ec2": 15.253213335653726,
+        "is_lmi_cheaper_than_ec2": true
+      },
+      "suitability": {
+        "score": 100,
+        "rating": "Excellent fit for LMI",
+        "warnings": []
+      }
+    }
+  },
+  {
+    "name": "IO-Heavy Workload",
+    "input": {
+      "runtime": "python",
+      "targetConcurrency": 100,
+      "memoryPerExec": 512,
+      "instanceType": "c7g.xlarge",
+      "requestsPerMonth": 1000000,
+      "durationSec": 60,
+      "arch": "arm64",
+      "savingsPlan": "none",
+      "workloadType": "io-heavy",
+      "azConfig": "3az"
+    },
+    "output": {
+      "capacity": {
+        "concurrency_per_vcpu": 4,
+        "function_memory_mb": 2048,
+        "vcpus_per_env": 1,
+        "sustainable_concurrency_per_env": 8,
+        "sustainable_concurrency_per_vcpu": 8,
+        "environments_needed": 13,
+        "envs_per_instance": 3,
+        "base_instances": 5,
+        "instances_with_buffer": 8,
+        "scaling_buffer": 1.5,
+        "cpu_adjustment": 1,
+        "az_config": "3 AZ (Standard)",
+        "lmi_packing_efficiency": 0.8,
+        "ec2_packing_efficiency": 0.6,
+        "utilization_factor": 0.125,
+        "lambda_cpu_usage": 12.5
+      },
+      "lmi_cost": {
+        "ec2_cost": 846.8,
+        "management_fee": 127.01999999999998,
+        "request_cost": 0.2,
+        "total_cost": 974.02,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0
+      },
+      "standard_lambda_cost": {
+        "compute_cost": 408,
+        "request_cost": 0.2,
+        "total_cost": 408.2,
+        "gb_seconds": 30000000,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "price_per_ms": 6.8e-9
+      },
+      "ec2_cost": {
+        "num_instances": 11,
+        "ec2_on_demand_monthly": 1164.35,
+        "ec2_after_discount": 1164.35,
+        "total_cost": 1164.35,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "packing_efficiency": 0.6
+      },
+      "pricing_variants": {
+        "lambda": {
+          "onDemand": {
+            "compute_cost": 408,
+            "request_cost": 0.2,
+            "total_cost": 408.2,
+            "gb_seconds": 30000000,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP1yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP3yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          }
+        },
+        "lmi": {
+          "onDemand": {
+            "ec2_cost": 846.8,
+            "management_fee": 127.01999999999998,
+            "request_cost": 0.2,
+            "total_cost": 974.02,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0
+          },
+          "computeSP1yr": {
+            "ec2_cost": 575.824,
+            "management_fee": 127.01999999999998,
+            "request_cost": 0.2,
+            "total_cost": 703.044,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "computeSP3yr": {
+            "ec2_cost": 296.37999999999994,
+            "management_fee": 127.01999999999998,
+            "request_cost": 0.2,
+            "total_cost": 423.5999999999999,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.65
+          },
+          "ec2SP1yr": {
+            "ec2_cost": 575.824,
+            "management_fee": 127.01999999999998,
+            "request_cost": 0.2,
+            "total_cost": 703.044,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "reserved3yr": {
+            "ec2_cost": 296.37999999999994,
+            "management_fee": 127.01999999999998,
+            "request_cost": 0.2,
+            "total_cost": 423.5999999999999,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65
+          }
+        },
+        "ec2": {
+          "onDemand": {
+            "num_instances": 11,
+            "ec2_on_demand_monthly": 1164.35,
+            "ec2_after_discount": 1164.35,
+            "total_cost": 1164.35,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "packing_efficiency": 0.6
+          },
+          "ec2SP1yr": {
+            "num_instances": 11,
+            "ec2_on_demand_monthly": 1164.35,
+            "ec2_after_discount": 791.7579999999998,
+            "total_cost": 791.7579999999998,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32,
+            "packing_efficiency": 0.6
+          },
+          "reserved3yr": {
+            "num_instances": 11,
+            "ec2_on_demand_monthly": 1164.35,
+            "ec2_after_discount": 407.5224999999999,
+            "total_cost": 407.5224999999999,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65,
+            "packing_efficiency": 0.6
+          }
+        }
+      },
+      "comparison": {
+        "savings_monthly_vs_std": -565.8199999999999,
+        "savings_percent_vs_std": -138.61342479176872,
+        "is_lmi_cheaper_than_std": false,
+        "savings_monthly_vs_ec2": 190.32999999999993,
+        "savings_percent_vs_ec2": 16.346459397947346,
+        "is_lmi_cheaper_than_ec2": true
+      },
+      "suitability": {
+        "score": 100,
+        "rating": "Excellent fit for LMI",
+        "warnings": []
+      }
+    }
+  },
+  {
+    "name": "CPU-Heavy Workload",
+    "input": {
+      "runtime": "python",
+      "targetConcurrency": 100,
+      "memoryPerExec": 512,
+      "instanceType": "c7g.xlarge",
+      "requestsPerMonth": 1000000,
+      "durationSec": 60,
+      "arch": "arm64",
+      "savingsPlan": "none",
+      "workloadType": "cpu-heavy",
+      "azConfig": "3az"
+    },
+    "output": {
+      "capacity": {
+        "concurrency_per_vcpu": 4,
+        "function_memory_mb": 2048,
+        "vcpus_per_env": 1,
+        "sustainable_concurrency_per_env": 2,
+        "sustainable_concurrency_per_vcpu": 2,
+        "environments_needed": 50,
+        "envs_per_instance": 3,
+        "base_instances": 17,
+        "instances_with_buffer": 26,
+        "scaling_buffer": 1.5,
+        "cpu_adjustment": 1,
+        "az_config": "3 AZ (Standard)",
+        "lmi_packing_efficiency": 0.8,
+        "ec2_packing_efficiency": 0.6,
+        "utilization_factor": 0.5,
+        "lambda_cpu_usage": 50
+      },
+      "lmi_cost": {
+        "ec2_cost": 2752.1,
+        "management_fee": 412.815,
+        "request_cost": 0.2,
+        "total_cost": 3165.115,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0
+      },
+      "standard_lambda_cost": {
+        "compute_cost": 408,
+        "request_cost": 0.2,
+        "total_cost": 408.2,
+        "gb_seconds": 30000000,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "price_per_ms": 6.8e-9
+      },
+      "ec2_cost": {
+        "num_instances": 35,
+        "ec2_on_demand_monthly": 3704.7499999999995,
+        "ec2_after_discount": 3704.7499999999995,
+        "total_cost": 3704.7499999999995,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "packing_efficiency": 0.6
+      },
+      "pricing_variants": {
+        "lambda": {
+          "onDemand": {
+            "compute_cost": 408,
+            "request_cost": 0.2,
+            "total_cost": 408.2,
+            "gb_seconds": 30000000,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP1yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP3yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          }
+        },
+        "lmi": {
+          "onDemand": {
+            "ec2_cost": 2752.1,
+            "management_fee": 412.815,
+            "request_cost": 0.2,
+            "total_cost": 3165.115,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0
+          },
+          "computeSP1yr": {
+            "ec2_cost": 1871.4279999999997,
+            "management_fee": 412.815,
+            "request_cost": 0.2,
+            "total_cost": 2284.4429999999993,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "computeSP3yr": {
+            "ec2_cost": 963.2349999999999,
+            "management_fee": 412.815,
+            "request_cost": 0.2,
+            "total_cost": 1376.25,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.65
+          },
+          "ec2SP1yr": {
+            "ec2_cost": 1871.4279999999997,
+            "management_fee": 412.815,
+            "request_cost": 0.2,
+            "total_cost": 2284.4429999999993,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "reserved3yr": {
+            "ec2_cost": 963.2349999999999,
+            "management_fee": 412.815,
+            "request_cost": 0.2,
+            "total_cost": 1376.25,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65
+          }
+        },
+        "ec2": {
+          "onDemand": {
+            "num_instances": 35,
+            "ec2_on_demand_monthly": 3704.7499999999995,
+            "ec2_after_discount": 3704.7499999999995,
+            "total_cost": 3704.7499999999995,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "packing_efficiency": 0.6
+          },
+          "ec2SP1yr": {
+            "num_instances": 35,
+            "ec2_on_demand_monthly": 3704.7499999999995,
+            "ec2_after_discount": 2519.2299999999996,
+            "total_cost": 2519.2299999999996,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32,
+            "packing_efficiency": 0.6
+          },
+          "reserved3yr": {
+            "num_instances": 35,
+            "ec2_on_demand_monthly": 3704.7499999999995,
+            "ec2_after_discount": 1296.6624999999997,
+            "total_cost": 1296.6624999999997,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65,
+            "packing_efficiency": 0.6
+          }
+        }
+      },
+      "comparison": {
+        "savings_monthly_vs_std": -2756.915,
+        "savings_percent_vs_std": -675.3833904948555,
+        "is_lmi_cheaper_than_std": false,
+        "savings_monthly_vs_ec2": 539.6349999999998,
+        "savings_percent_vs_ec2": 14.566030096497734,
+        "is_lmi_cheaper_than_ec2": true
+      },
+      "suitability": {
+        "score": 90,
+        "rating": "Excellent fit for LMI",
+        "warnings": [
+          "CPU-heavy workloads see lower concurrency gains."
+        ]
+      }
+    }
+  },
+  {
+    "name": "High Volume with Compute SP 1yr",
+    "input": {
+      "runtime": "python",
+      "targetConcurrency": 100,
+      "memoryPerExec": 512,
+      "instanceType": "c7g.xlarge",
+      "requestsPerMonth": 10000000,
+      "durationSec": 60,
+      "arch": "arm64",
+      "savingsPlan": "compute_sp_1yr",
+      "workloadType": "balanced",
+      "azConfig": "3az"
+    },
+    "output": {
+      "capacity": {
+        "concurrency_per_vcpu": 4,
+        "function_memory_mb": 2048,
+        "vcpus_per_env": 1,
+        "sustainable_concurrency_per_env": 4,
+        "sustainable_concurrency_per_vcpu": 4,
+        "environments_needed": 25,
+        "envs_per_instance": 3,
+        "base_instances": 9,
+        "instances_with_buffer": 14,
+        "scaling_buffer": 1.5,
+        "cpu_adjustment": 1,
+        "az_config": "3 AZ (Standard)",
+        "lmi_packing_efficiency": 0.8,
+        "ec2_packing_efficiency": 0.6,
+        "utilization_factor": 0.25,
+        "lambda_cpu_usage": 25
+      },
+      "lmi_cost": {
+        "ec2_cost": 1007.6919999999998,
+        "management_fee": 222.28499999999997,
+        "request_cost": 2,
+        "total_cost": 1231.9769999999999,
+        "savings_plan": "Compute Savings Plan (1yr)",
+        "discount_rate": 0.32
+      },
+      "standard_lambda_cost": {
+        "compute_cost": 3590.4,
+        "request_cost": 2,
+        "total_cost": 3592.4,
+        "gb_seconds": 300000000,
+        "savings_plan": "Compute Savings Plan (1yr)",
+        "discount_rate": 0.12,
+        "price_per_ms": 6.8e-9
+      },
+      "ec2_cost": {
+        "num_instances": 19,
+        "ec2_on_demand_monthly": 2011.1499999999999,
+        "ec2_after_discount": 1367.5819999999999,
+        "total_cost": 1367.5819999999999,
+        "savings_plan": "Compute Savings Plan (1yr)",
+        "discount_rate": 0.32,
+        "packing_efficiency": 0.6
+      },
+      "pricing_variants": {
+        "lambda": {
+          "onDemand": {
+            "compute_cost": 4080,
+            "request_cost": 2,
+            "total_cost": 4082,
+            "gb_seconds": 300000000,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP1yr": {
+            "compute_cost": 3590.4,
+            "request_cost": 2,
+            "total_cost": 3592.4,
+            "gb_seconds": 300000000,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP3yr": {
+            "compute_cost": 3590.4,
+            "request_cost": 2,
+            "total_cost": 3592.4,
+            "gb_seconds": 300000000,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          }
+        },
+        "lmi": {
+          "onDemand": {
+            "ec2_cost": 1481.8999999999999,
+            "management_fee": 222.28499999999997,
+            "request_cost": 2,
+            "total_cost": 1706.185,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0
+          },
+          "computeSP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 2,
+            "total_cost": 1231.9769999999999,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "computeSP3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 2,
+            "total_cost": 742.9499999999999,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.65
+          },
+          "ec2SP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 2,
+            "total_cost": 1231.9769999999999,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "reserved3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 2,
+            "total_cost": 742.9499999999999,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65
+          }
+        },
+        "ec2": {
+          "onDemand": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 2011.1499999999999,
+            "total_cost": 2011.1499999999999,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "packing_efficiency": 0.6
+          },
+          "ec2SP1yr": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 1367.5819999999999,
+            "total_cost": 1367.5819999999999,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32,
+            "packing_efficiency": 0.6
+          },
+          "reserved3yr": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 703.9024999999999,
+            "total_cost": 703.9024999999999,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65,
+            "packing_efficiency": 0.6
+          }
+        }
+      },
+      "comparison": {
+        "savings_monthly_vs_std": 2360.4230000000002,
+        "savings_percent_vs_std": 65.70601826077275,
+        "is_lmi_cheaper_than_std": true,
+        "savings_monthly_vs_ec2": 135.60500000000002,
+        "savings_percent_vs_ec2": 9.915675988715853,
+        "is_lmi_cheaper_than_ec2": true
+      },
+      "suitability": {
+        "score": 100,
+        "rating": "Excellent fit for LMI",
+        "warnings": []
+      }
+    }
+  },
+  {
+    "name": "Compute SP 3yr",
+    "input": {
+      "runtime": "python",
+      "targetConcurrency": 100,
+      "memoryPerExec": 512,
+      "instanceType": "c7g.xlarge",
+      "requestsPerMonth": 10000000,
+      "durationSec": 60,
+      "arch": "arm64",
+      "savingsPlan": "compute_sp_3yr",
+      "workloadType": "balanced",
+      "azConfig": "3az"
+    },
+    "output": {
+      "capacity": {
+        "concurrency_per_vcpu": 4,
+        "function_memory_mb": 2048,
+        "vcpus_per_env": 1,
+        "sustainable_concurrency_per_env": 4,
+        "sustainable_concurrency_per_vcpu": 4,
+        "environments_needed": 25,
+        "envs_per_instance": 3,
+        "base_instances": 9,
+        "instances_with_buffer": 14,
+        "scaling_buffer": 1.5,
+        "cpu_adjustment": 1,
+        "az_config": "3 AZ (Standard)",
+        "lmi_packing_efficiency": 0.8,
+        "ec2_packing_efficiency": 0.6,
+        "utilization_factor": 0.25,
+        "lambda_cpu_usage": 25
+      },
+      "lmi_cost": {
+        "ec2_cost": 518.665,
+        "management_fee": 222.28499999999997,
+        "request_cost": 2,
+        "total_cost": 742.9499999999999,
+        "savings_plan": "Compute Savings Plan (3yr)",
+        "discount_rate": 0.65
+      },
+      "standard_lambda_cost": {
+        "compute_cost": 3590.4,
+        "request_cost": 2,
+        "total_cost": 3592.4,
+        "gb_seconds": 300000000,
+        "savings_plan": "Compute Savings Plan (3yr)",
+        "discount_rate": 0.12,
+        "price_per_ms": 6.8e-9
+      },
+      "ec2_cost": {
+        "num_instances": 19,
+        "ec2_on_demand_monthly": 2011.1499999999999,
+        "ec2_after_discount": 703.9024999999999,
+        "total_cost": 703.9024999999999,
+        "savings_plan": "Compute Savings Plan (3yr)",
+        "discount_rate": 0.65,
+        "packing_efficiency": 0.6
+      },
+      "pricing_variants": {
+        "lambda": {
+          "onDemand": {
+            "compute_cost": 4080,
+            "request_cost": 2,
+            "total_cost": 4082,
+            "gb_seconds": 300000000,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP1yr": {
+            "compute_cost": 3590.4,
+            "request_cost": 2,
+            "total_cost": 3592.4,
+            "gb_seconds": 300000000,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP3yr": {
+            "compute_cost": 3590.4,
+            "request_cost": 2,
+            "total_cost": 3592.4,
+            "gb_seconds": 300000000,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          }
+        },
+        "lmi": {
+          "onDemand": {
+            "ec2_cost": 1481.8999999999999,
+            "management_fee": 222.28499999999997,
+            "request_cost": 2,
+            "total_cost": 1706.185,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0
+          },
+          "computeSP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 2,
+            "total_cost": 1231.9769999999999,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "computeSP3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 2,
+            "total_cost": 742.9499999999999,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.65
+          },
+          "ec2SP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 2,
+            "total_cost": 1231.9769999999999,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "reserved3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 2,
+            "total_cost": 742.9499999999999,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65
+          }
+        },
+        "ec2": {
+          "onDemand": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 2011.1499999999999,
+            "total_cost": 2011.1499999999999,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "packing_efficiency": 0.6
+          },
+          "ec2SP1yr": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 1367.5819999999999,
+            "total_cost": 1367.5819999999999,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32,
+            "packing_efficiency": 0.6
+          },
+          "reserved3yr": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 703.9024999999999,
+            "total_cost": 703.9024999999999,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65,
+            "packing_efficiency": 0.6
+          }
+        }
+      },
+      "comparison": {
+        "savings_monthly_vs_std": 2849.4500000000003,
+        "savings_percent_vs_std": 79.3188397728538,
+        "is_lmi_cheaper_than_std": true,
+        "savings_monthly_vs_ec2": -39.047500000000014,
+        "savings_percent_vs_ec2": -5.54728815425432,
+        "is_lmi_cheaper_than_ec2": false
+      },
+      "suitability": {
+        "score": 100,
+        "rating": "Excellent fit for LMI",
+        "warnings": []
+      }
+    }
+  },
+  {
+    "name": "EC2 Packing Efficiency 50%",
+    "input": {
+      "runtime": "python",
+      "targetConcurrency": 100,
+      "memoryPerExec": 512,
+      "instanceType": "c7g.xlarge",
+      "requestsPerMonth": 1000000,
+      "durationSec": 60,
+      "arch": "arm64",
+      "savingsPlan": "none",
+      "workloadType": "balanced",
+      "azConfig": "3az",
+      "ec2PackingEfficiency": 50
+    },
+    "output": {
+      "capacity": {
+        "concurrency_per_vcpu": 4,
+        "function_memory_mb": 2048,
+        "vcpus_per_env": 1,
+        "sustainable_concurrency_per_env": 4,
+        "sustainable_concurrency_per_vcpu": 4,
+        "environments_needed": 25,
+        "envs_per_instance": 3,
+        "base_instances": 9,
+        "instances_with_buffer": 14,
+        "scaling_buffer": 1.5,
+        "cpu_adjustment": 1,
+        "az_config": "3 AZ (Standard)",
+        "lmi_packing_efficiency": 0.8,
+        "ec2_packing_efficiency": 0.6,
+        "utilization_factor": 0.25,
+        "lambda_cpu_usage": 25
+      },
+      "lmi_cost": {
+        "ec2_cost": 1481.8999999999999,
+        "management_fee": 222.28499999999997,
+        "request_cost": 0.2,
+        "total_cost": 1704.385,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0
+      },
+      "standard_lambda_cost": {
+        "compute_cost": 408,
+        "request_cost": 0.2,
+        "total_cost": 408.2,
+        "gb_seconds": 30000000,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "price_per_ms": 6.8e-9
+      },
+      "ec2_cost": {
+        "num_instances": 23,
+        "ec2_on_demand_monthly": 2434.55,
+        "ec2_after_discount": 2434.55,
+        "total_cost": 2434.55,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "packing_efficiency": 0.5
+      },
+      "pricing_variants": {
+        "lambda": {
+          "onDemand": {
+            "compute_cost": 408,
+            "request_cost": 0.2,
+            "total_cost": 408.2,
+            "gb_seconds": 30000000,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP1yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP3yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          }
+        },
+        "lmi": {
+          "onDemand": {
+            "ec2_cost": 1481.8999999999999,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1704.385,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0
+          },
+          "computeSP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1230.177,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "computeSP3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 741.15,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.65
+          },
+          "ec2SP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1230.177,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "reserved3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 741.15,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65
+          }
+        },
+        "ec2": {
+          "onDemand": {
+            "num_instances": 23,
+            "ec2_on_demand_monthly": 2434.55,
+            "ec2_after_discount": 2434.55,
+            "total_cost": 2434.55,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "packing_efficiency": 0.5
+          },
+          "ec2SP1yr": {
+            "num_instances": 23,
+            "ec2_on_demand_monthly": 2434.55,
+            "ec2_after_discount": 1655.494,
+            "total_cost": 1655.494,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32,
+            "packing_efficiency": 0.5
+          },
+          "reserved3yr": {
+            "num_instances": 23,
+            "ec2_on_demand_monthly": 2434.55,
+            "ec2_after_discount": 852.0925,
+            "total_cost": 852.0925,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65,
+            "packing_efficiency": 0.5
+          }
+        }
+      },
+      "comparison": {
+        "savings_monthly_vs_std": -1296.185,
+        "savings_percent_vs_std": -317.53674669279764,
+        "is_lmi_cheaper_than_std": false,
+        "savings_monthly_vs_ec2": 730.1650000000002,
+        "savings_percent_vs_ec2": 29.991784929453086,
+        "is_lmi_cheaper_than_ec2": true
+      },
+      "suitability": {
+        "score": 100,
+        "rating": "Excellent fit for LMI",
+        "warnings": []
+      }
+    }
+  },
+  {
+    "name": "EC2 Packing Efficiency 80%",
+    "input": {
+      "runtime": "python",
+      "targetConcurrency": 100,
+      "memoryPerExec": 512,
+      "instanceType": "c7g.xlarge",
+      "requestsPerMonth": 1000000,
+      "durationSec": 60,
+      "arch": "arm64",
+      "savingsPlan": "none",
+      "workloadType": "balanced",
+      "azConfig": "3az",
+      "ec2PackingEfficiency": 80
+    },
+    "output": {
+      "capacity": {
+        "concurrency_per_vcpu": 4,
+        "function_memory_mb": 2048,
+        "vcpus_per_env": 1,
+        "sustainable_concurrency_per_env": 4,
+        "sustainable_concurrency_per_vcpu": 4,
+        "environments_needed": 25,
+        "envs_per_instance": 3,
+        "base_instances": 9,
+        "instances_with_buffer": 14,
+        "scaling_buffer": 1.5,
+        "cpu_adjustment": 1,
+        "az_config": "3 AZ (Standard)",
+        "lmi_packing_efficiency": 0.8,
+        "ec2_packing_efficiency": 0.6,
+        "utilization_factor": 0.25,
+        "lambda_cpu_usage": 25
+      },
+      "lmi_cost": {
+        "ec2_cost": 1481.8999999999999,
+        "management_fee": 222.28499999999997,
+        "request_cost": 0.2,
+        "total_cost": 1704.385,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0
+      },
+      "standard_lambda_cost": {
+        "compute_cost": 408,
+        "request_cost": 0.2,
+        "total_cost": 408.2,
+        "gb_seconds": 30000000,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "price_per_ms": 6.8e-9
+      },
+      "ec2_cost": {
+        "num_instances": 14,
+        "ec2_on_demand_monthly": 1481.8999999999999,
+        "ec2_after_discount": 1481.8999999999999,
+        "total_cost": 1481.8999999999999,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "packing_efficiency": 0.8
+      },
+      "pricing_variants": {
+        "lambda": {
+          "onDemand": {
+            "compute_cost": 408,
+            "request_cost": 0.2,
+            "total_cost": 408.2,
+            "gb_seconds": 30000000,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP1yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP3yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          }
+        },
+        "lmi": {
+          "onDemand": {
+            "ec2_cost": 1481.8999999999999,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1704.385,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0
+          },
+          "computeSP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1230.177,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "computeSP3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 741.15,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.65
+          },
+          "ec2SP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1230.177,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "reserved3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 741.15,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65
+          }
+        },
+        "ec2": {
+          "onDemand": {
+            "num_instances": 14,
+            "ec2_on_demand_monthly": 1481.8999999999999,
+            "ec2_after_discount": 1481.8999999999999,
+            "total_cost": 1481.8999999999999,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "packing_efficiency": 0.8
+          },
+          "ec2SP1yr": {
+            "num_instances": 14,
+            "ec2_on_demand_monthly": 1481.8999999999999,
+            "ec2_after_discount": 1007.6919999999998,
+            "total_cost": 1007.6919999999998,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32,
+            "packing_efficiency": 0.8
+          },
+          "reserved3yr": {
+            "num_instances": 14,
+            "ec2_on_demand_monthly": 1481.8999999999999,
+            "ec2_after_discount": 518.665,
+            "total_cost": 518.665,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65,
+            "packing_efficiency": 0.8
+          }
+        }
+      },
+      "comparison": {
+        "savings_monthly_vs_std": -1296.185,
+        "savings_percent_vs_std": -317.53674669279764,
+        "is_lmi_cheaper_than_std": false,
+        "savings_monthly_vs_ec2": -222.48500000000013,
+        "savings_percent_vs_ec2": -15.01349618732709,
+        "is_lmi_cheaper_than_ec2": false
+      },
+      "suitability": {
+        "score": 100,
+        "rating": "Excellent fit for LMI",
+        "warnings": []
+      }
+    }
+  },
+  {
+    "name": "Low Concurrency (50)",
+    "input": {
+      "runtime": "python",
+      "targetConcurrency": 50,
+      "memoryPerExec": 512,
+      "instanceType": "c7g.xlarge",
+      "requestsPerMonth": 1000000,
+      "durationSec": 60,
+      "arch": "arm64",
+      "savingsPlan": "none",
+      "workloadType": "balanced",
+      "azConfig": "3az"
+    },
+    "output": {
+      "capacity": {
+        "concurrency_per_vcpu": 4,
+        "function_memory_mb": 2048,
+        "vcpus_per_env": 1,
+        "sustainable_concurrency_per_env": 4,
+        "sustainable_concurrency_per_vcpu": 4,
+        "environments_needed": 13,
+        "envs_per_instance": 3,
+        "base_instances": 5,
+        "instances_with_buffer": 8,
+        "scaling_buffer": 1.5,
+        "cpu_adjustment": 1,
+        "az_config": "3 AZ (Standard)",
+        "lmi_packing_efficiency": 0.8,
+        "ec2_packing_efficiency": 0.6,
+        "utilization_factor": 0.25,
+        "lambda_cpu_usage": 25
+      },
+      "lmi_cost": {
+        "ec2_cost": 846.8,
+        "management_fee": 127.01999999999998,
+        "request_cost": 0.2,
+        "total_cost": 974.02,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0
+      },
+      "standard_lambda_cost": {
+        "compute_cost": 408,
+        "request_cost": 0.2,
+        "total_cost": 408.2,
+        "gb_seconds": 30000000,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "price_per_ms": 6.8e-9
+      },
+      "ec2_cost": {
+        "num_instances": 11,
+        "ec2_on_demand_monthly": 1164.35,
+        "ec2_after_discount": 1164.35,
+        "total_cost": 1164.35,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "packing_efficiency": 0.6
+      },
+      "pricing_variants": {
+        "lambda": {
+          "onDemand": {
+            "compute_cost": 408,
+            "request_cost": 0.2,
+            "total_cost": 408.2,
+            "gb_seconds": 30000000,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP1yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP3yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          }
+        },
+        "lmi": {
+          "onDemand": {
+            "ec2_cost": 846.8,
+            "management_fee": 127.01999999999998,
+            "request_cost": 0.2,
+            "total_cost": 974.02,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0
+          },
+          "computeSP1yr": {
+            "ec2_cost": 575.824,
+            "management_fee": 127.01999999999998,
+            "request_cost": 0.2,
+            "total_cost": 703.044,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "computeSP3yr": {
+            "ec2_cost": 296.37999999999994,
+            "management_fee": 127.01999999999998,
+            "request_cost": 0.2,
+            "total_cost": 423.5999999999999,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.65
+          },
+          "ec2SP1yr": {
+            "ec2_cost": 575.824,
+            "management_fee": 127.01999999999998,
+            "request_cost": 0.2,
+            "total_cost": 703.044,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "reserved3yr": {
+            "ec2_cost": 296.37999999999994,
+            "management_fee": 127.01999999999998,
+            "request_cost": 0.2,
+            "total_cost": 423.5999999999999,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65
+          }
+        },
+        "ec2": {
+          "onDemand": {
+            "num_instances": 11,
+            "ec2_on_demand_monthly": 1164.35,
+            "ec2_after_discount": 1164.35,
+            "total_cost": 1164.35,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "packing_efficiency": 0.6
+          },
+          "ec2SP1yr": {
+            "num_instances": 11,
+            "ec2_on_demand_monthly": 1164.35,
+            "ec2_after_discount": 791.7579999999998,
+            "total_cost": 791.7579999999998,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32,
+            "packing_efficiency": 0.6
+          },
+          "reserved3yr": {
+            "num_instances": 11,
+            "ec2_on_demand_monthly": 1164.35,
+            "ec2_after_discount": 407.5224999999999,
+            "total_cost": 407.5224999999999,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65,
+            "packing_efficiency": 0.6
+          }
+        }
+      },
+      "comparison": {
+        "savings_monthly_vs_std": -565.8199999999999,
+        "savings_percent_vs_std": -138.61342479176872,
+        "is_lmi_cheaper_than_std": false,
+        "savings_monthly_vs_ec2": 190.32999999999993,
+        "savings_percent_vs_ec2": 16.346459397947346,
+        "is_lmi_cheaper_than_ec2": true
+      },
+      "suitability": {
+        "score": 100,
+        "rating": "Excellent fit for LMI",
+        "warnings": []
+      }
+    }
+  },
+  {
+    "name": "High Concurrency (200)",
+    "input": {
+      "runtime": "python",
+      "targetConcurrency": 200,
+      "memoryPerExec": 512,
+      "instanceType": "c7g.xlarge",
+      "requestsPerMonth": 1000000,
+      "durationSec": 60,
+      "arch": "arm64",
+      "savingsPlan": "none",
+      "workloadType": "balanced",
+      "azConfig": "3az"
+    },
+    "output": {
+      "capacity": {
+        "concurrency_per_vcpu": 4,
+        "function_memory_mb": 2048,
+        "vcpus_per_env": 1,
+        "sustainable_concurrency_per_env": 4,
+        "sustainable_concurrency_per_vcpu": 4,
+        "environments_needed": 50,
+        "envs_per_instance": 3,
+        "base_instances": 17,
+        "instances_with_buffer": 26,
+        "scaling_buffer": 1.5,
+        "cpu_adjustment": 1,
+        "az_config": "3 AZ (Standard)",
+        "lmi_packing_efficiency": 0.8,
+        "ec2_packing_efficiency": 0.6,
+        "utilization_factor": 0.25,
+        "lambda_cpu_usage": 25
+      },
+      "lmi_cost": {
+        "ec2_cost": 2752.1,
+        "management_fee": 412.815,
+        "request_cost": 0.2,
+        "total_cost": 3165.115,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0
+      },
+      "standard_lambda_cost": {
+        "compute_cost": 408,
+        "request_cost": 0.2,
+        "total_cost": 408.2,
+        "gb_seconds": 30000000,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "price_per_ms": 6.8e-9
+      },
+      "ec2_cost": {
+        "num_instances": 35,
+        "ec2_on_demand_monthly": 3704.7499999999995,
+        "ec2_after_discount": 3704.7499999999995,
+        "total_cost": 3704.7499999999995,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "packing_efficiency": 0.6
+      },
+      "pricing_variants": {
+        "lambda": {
+          "onDemand": {
+            "compute_cost": 408,
+            "request_cost": 0.2,
+            "total_cost": 408.2,
+            "gb_seconds": 30000000,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP1yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP3yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          }
+        },
+        "lmi": {
+          "onDemand": {
+            "ec2_cost": 2752.1,
+            "management_fee": 412.815,
+            "request_cost": 0.2,
+            "total_cost": 3165.115,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0
+          },
+          "computeSP1yr": {
+            "ec2_cost": 1871.4279999999997,
+            "management_fee": 412.815,
+            "request_cost": 0.2,
+            "total_cost": 2284.4429999999993,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "computeSP3yr": {
+            "ec2_cost": 963.2349999999999,
+            "management_fee": 412.815,
+            "request_cost": 0.2,
+            "total_cost": 1376.25,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.65
+          },
+          "ec2SP1yr": {
+            "ec2_cost": 1871.4279999999997,
+            "management_fee": 412.815,
+            "request_cost": 0.2,
+            "total_cost": 2284.4429999999993,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "reserved3yr": {
+            "ec2_cost": 963.2349999999999,
+            "management_fee": 412.815,
+            "request_cost": 0.2,
+            "total_cost": 1376.25,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65
+          }
+        },
+        "ec2": {
+          "onDemand": {
+            "num_instances": 35,
+            "ec2_on_demand_monthly": 3704.7499999999995,
+            "ec2_after_discount": 3704.7499999999995,
+            "total_cost": 3704.7499999999995,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "packing_efficiency": 0.6
+          },
+          "ec2SP1yr": {
+            "num_instances": 35,
+            "ec2_on_demand_monthly": 3704.7499999999995,
+            "ec2_after_discount": 2519.2299999999996,
+            "total_cost": 2519.2299999999996,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32,
+            "packing_efficiency": 0.6
+          },
+          "reserved3yr": {
+            "num_instances": 35,
+            "ec2_on_demand_monthly": 3704.7499999999995,
+            "ec2_after_discount": 1296.6624999999997,
+            "total_cost": 1296.6624999999997,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65,
+            "packing_efficiency": 0.6
+          }
+        }
+      },
+      "comparison": {
+        "savings_monthly_vs_std": -2756.915,
+        "savings_percent_vs_std": -675.3833904948555,
+        "is_lmi_cheaper_than_std": false,
+        "savings_monthly_vs_ec2": 539.6349999999998,
+        "savings_percent_vs_ec2": 14.566030096497734,
+        "is_lmi_cheaper_than_ec2": true
+      },
+      "suitability": {
+        "score": 100,
+        "rating": "Excellent fit for LMI",
+        "warnings": []
+      }
+    }
+  },
+  {
+    "name": "5 AZ Configuration",
+    "input": {
+      "runtime": "python",
+      "targetConcurrency": 100,
+      "memoryPerExec": 512,
+      "instanceType": "c7g.xlarge",
+      "requestsPerMonth": 1000000,
+      "durationSec": 60,
+      "arch": "arm64",
+      "savingsPlan": "none",
+      "workloadType": "balanced",
+      "azConfig": "5az"
+    },
+    "output": {
+      "capacity": {
+        "concurrency_per_vcpu": 4,
+        "function_memory_mb": 2048,
+        "vcpus_per_env": 1,
+        "sustainable_concurrency_per_env": 4,
+        "sustainable_concurrency_per_vcpu": 4,
+        "environments_needed": 25,
+        "envs_per_instance": 3,
+        "base_instances": 9,
+        "instances_with_buffer": 14,
+        "scaling_buffer": 1.5,
+        "cpu_adjustment": 1,
+        "az_config": "5 AZ (High Resilience)",
+        "lmi_packing_efficiency": 0.8,
+        "ec2_packing_efficiency": 0.6,
+        "utilization_factor": 0.25,
+        "lambda_cpu_usage": 25
+      },
+      "lmi_cost": {
+        "ec2_cost": 1481.8999999999999,
+        "management_fee": 222.28499999999997,
+        "request_cost": 0.2,
+        "total_cost": 1704.385,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0
+      },
+      "standard_lambda_cost": {
+        "compute_cost": 408,
+        "request_cost": 0.2,
+        "total_cost": 408.2,
+        "gb_seconds": 30000000,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "price_per_ms": 6.8e-9
+      },
+      "ec2_cost": {
+        "num_instances": 19,
+        "ec2_on_demand_monthly": 2011.1499999999999,
+        "ec2_after_discount": 2011.1499999999999,
+        "total_cost": 2011.1499999999999,
+        "savings_plan": "On-Demand",
+        "discount_rate": 0,
+        "packing_efficiency": 0.6
+      },
+      "pricing_variants": {
+        "lambda": {
+          "onDemand": {
+            "compute_cost": 408,
+            "request_cost": 0.2,
+            "total_cost": 408.2,
+            "gb_seconds": 30000000,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP1yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          },
+          "computeSP3yr": {
+            "compute_cost": 359.04,
+            "request_cost": 0.2,
+            "total_cost": 359.24,
+            "gb_seconds": 30000000,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.12,
+            "price_per_ms": 6.8e-9
+          }
+        },
+        "lmi": {
+          "onDemand": {
+            "ec2_cost": 1481.8999999999999,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1704.385,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0
+          },
+          "computeSP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1230.177,
+            "savings_plan": "Compute Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "computeSP3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 741.15,
+            "savings_plan": "Compute Savings Plan (3yr)",
+            "discount_rate": 0.65
+          },
+          "ec2SP1yr": {
+            "ec2_cost": 1007.6919999999998,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 1230.177,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32
+          },
+          "reserved3yr": {
+            "ec2_cost": 518.665,
+            "management_fee": 222.28499999999997,
+            "request_cost": 0.2,
+            "total_cost": 741.15,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65
+          }
+        },
+        "ec2": {
+          "onDemand": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 2011.1499999999999,
+            "total_cost": 2011.1499999999999,
+            "savings_plan": "On-Demand",
+            "discount_rate": 0,
+            "packing_efficiency": 0.6
+          },
+          "ec2SP1yr": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 1367.5819999999999,
+            "total_cost": 1367.5819999999999,
+            "savings_plan": "EC2 Instance Savings Plan (1yr)",
+            "discount_rate": 0.32,
+            "packing_efficiency": 0.6
+          },
+          "reserved3yr": {
+            "num_instances": 19,
+            "ec2_on_demand_monthly": 2011.1499999999999,
+            "ec2_after_discount": 703.9024999999999,
+            "total_cost": 703.9024999999999,
+            "savings_plan": "Reserved Instance (3yr)",
+            "discount_rate": 0.65,
+            "packing_efficiency": 0.6
+          }
+        }
+      },
+      "comparison": {
+        "savings_monthly_vs_std": -1296.185,
+        "savings_percent_vs_std": -317.53674669279764,
+        "is_lmi_cheaper_than_std": false,
+        "savings_monthly_vs_ec2": 306.7649999999999,
+        "savings_percent_vs_ec2": 15.253213335653726,
+        "is_lmi_cheaper_than_ec2": true
+      },
+      "suitability": {
+        "score": 100,
+        "rating": "Excellent fit for LMI",
+        "warnings": []
+      }
+    }
+  }
+]

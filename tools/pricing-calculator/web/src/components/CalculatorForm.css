@@ -1,0 +1,191 @@
+/* AWS Pricing Calculator style form */
+.calculator-form {
+  background: #fff;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #d5dbdb;
+  border-radius: 2px;
+}
+
+/* Header */
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eaeded;
+}
+.form-icon { width: 22px; height: 22px; color: #0073bb; }
+.form-header h2 {
+  margin: 0;
+  color: #16191f;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+/* Sections */
+.form-section {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeded;
+}
+.form-section:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.form-section h3 {
+  margin: 0 0 0.5rem 0;
+  color: #16191f;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* Grid rows */
+.form-row {
+  display: grid;
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.4rem;
+}
+.form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+.form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-row.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+/* Form groups */
+.form-group { margin-bottom: 0.15rem; }
+.form-group label {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-weight: 700;
+  color: #545b64;
+  font-size: 0.75rem;
+}
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #aab7b8;
+  border-radius: 2px;
+  font-size: 0.85rem;
+  color: #16191f;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #0073bb;
+  box-shadow: 0 0 0 1px #0073bb;
+}
+.form-group input::placeholder {
+  color: #aab7b8;
+  font-size: 0.78rem;
+}
+.form-group small {
+  display: block;
+  margin-top: 0.1rem;
+  color: #687078;
+  font-size: 0.7rem;
+}
+.field-hint {
+  display: block;
+  font-weight: 400;
+  color: #687078;
+  font-size: 0.68rem;
+  margin-top: 0.15rem;
+}
+.empty-placeholder { visibility: hidden; }
+
+/* Advanced section */
+.advanced-section {
+  background: #fff;
+  padding: 0;
+  border: 1px solid #d5dbdb;
+  border-radius: 2px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+.advanced-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.75rem 1rem;
+  background: #fafafa;
+  border-bottom: 1px solid #eaeded;
+  transition: background 0.15s;
+}
+.advanced-header:hover { background: #f2f3f3; }
+.advanced-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  border: none;
+  padding: 0;
+  color: #16191f;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.advanced-icon { width: 18px; height: 18px; color: #0073bb; }
+.toggle-icon { width: 18px; height: 18px; color: #687078; transition: transform 0.2s; }
+.toggle-icon.open { transform: rotate(180deg); }
+.advanced-content {
+  padding: 1rem;
+  background: #fff;
+}
+.advanced-description {
+  margin: 0 0 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  background: #f1faff;
+  border-left: 3px solid #0073bb;
+  color: #0073bb;
+  font-size: 0.75rem;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+/* Calculate button — Amazon orange (bigger and bolder) */
+.calculate-btn {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  margin-top: 0.75rem;
+  background: #ff9900 !important;
+  color: #000 !important;
+  border: 2px solid #e88b00;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(255, 153, 0, 0.3);
+}
+.calculate-btn:hover {
+  background: #ec7211 !important;
+  border-color: #d66010;
+  box-shadow: 0 3px 6px rgba(236, 114, 17, 0.4);
+  transform: translateY(-1px);
+}
+.calculate-btn:active {
+  background: #d66010 !important;
+  border-color: #c45500;
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(214, 96, 16, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form-row.cols-3, .form-row.cols-4 { grid-template-columns: 1fr 1fr; }
+  .empty-placeholder { display: none; }
+}
+@media (max-width: 480px) {
+  .form-row.cols-2, .form-row.cols-3, .form-row.cols-4 { grid-template-columns: 1fr; }
+}

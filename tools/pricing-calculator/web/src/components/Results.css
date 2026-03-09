@@ -1,0 +1,317 @@
+/* AWS Pricing Calculator style results */
+.results { margin-top: 1.25rem; }
+
+/* Key metrics bar */
+.key-metrics {
+  background: #232f3e;
+  padding: 1.25rem 1.5rem;
+  border-radius: 2px;
+  margin-bottom: 1.25rem;
+  color: white;
+}
+.key-metrics h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.section-icon { width: 20px; height: 20px; color: #fff; }
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+.metric-card {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 2px;
+  text-align: center;
+}
+.metric-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+.metric-card.primary { border-top: 3px solid #ec7211; }
+.metric-label { font-size: 0.75rem; color: #545b64; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 0.3rem; }
+.metric-value { font-size: 2rem; font-weight: 700; color: #16191f; }
+.metric-card.primary .metric-value { color: #ec7211; }
+.metric-note { font-size: 0.7rem; color: #687078; margin-top: 0.2rem; }
+
+/* Capacity detail */
+.results-section {
+  background: #fff;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #d5dbdb;
+  border-radius: 2px;
+  margin-bottom: 1.25rem;
+}
+.results-section h3 {
+  margin: 0 0 1rem 0;
+  color: #16191f;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom: 1px solid #eaeded;
+  padding-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.results-section .section-icon { color: #0073bb; }
+.capacity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem;
+}
+.capacity-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.6rem;
+  background: #fafafa;
+  border: 1px solid #eaeded;
+  border-radius: 2px;
+  font-size: 0.82rem;
+}
+.capacity-item .label { color: #545b64; }
+.capacity-item .value { color: #16191f; font-weight: 700; }
+
+/* ---- Cost Comparison Table ---- */
+.cost-table-section { padding: 1.25rem 0.75rem; }
+.cost-table-wrapper { overflow-x: auto; }
+
+.cost-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+/* Group headers (Lambda / LMI / EC2) */
+.group-header-row th { padding: 0; }
+.row-label-header { width: 110px; min-width: 110px; }
+.group-header {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.5rem 0.25rem;
+  color: #fff;
+}
+.grp-lambda { background: #232f3e; }
+.grp-lmi    { background: #ec7211; }
+.grp-ec2    { background: #0073bb; }
+
+/* Column sub-headers */
+.col-header-row { background: #fafafa; }
+.col-header {
+  text-align: right;
+  font-weight: 600;
+  font-size: 0.7rem;
+  color: #545b64;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 2px solid #d5dbdb;
+  border-left: 1px solid #eaeded;
+}
+
+/* Row labels */
+.row-label {
+  font-weight: 600;
+  color: #545b64;
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid #eaeded;
+  text-align: left;
+  background: #fafafa;
+}
+
+/* Data cells */
+.cell {
+  text-align: right;
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid #eaeded;
+  border-left: 1px solid #eaeded;
+  color: #16191f;
+}
+.cell.muted { color: #687078; }
+.cell.discount { color: #1d8102; font-weight: 600; }
+
+/* Total row */
+.total-row { background: #f2f3f3; }
+.total-row .row-label {
+  font-weight: 700;
+  color: #16191f;
+  background: #f2f3f3;
+  border-top: 2px solid #16191f;
+}
+.total-row .cell {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #16191f;
+  border-top: 2px solid #16191f;
+  position: relative;
+}
+.total-row .cell.best-price {
+  background: #e6f4ea;
+  color: #1d8102;
+}
+.best-badge {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #1d8102;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+}
+
+/* Savings vs Lambda OD row */
+.cell.savings-cell { color: #1d8102; font-weight: 600; }
+.cell.loss-cell { color: #d13212; font-weight: 600; }
+
+/* Footnotes */
+.table-footnotes {
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #eaeded;
+  font-size: 0.72rem;
+  color: #687078;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.table-footnotes .sep { color: #d5dbdb; }
+
+/* ---- Multi-Concurrency Gain ---- */
+.mc-section { padding-bottom: 1rem; }
+.mc-layout {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.5rem;
+  align-items: center;
+}
+.mc-visual { flex: 1; }
+.mc-bar-group { margin-bottom: 0.6rem; }
+.mc-bar-group:last-child { margin-bottom: 0; }
+.mc-bar-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #545b64;
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.mc-bar-track {
+  background: #eaeded;
+  border-radius: 2px;
+  height: 28px;
+  overflow: hidden;
+}
+.mc-bar {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 2px;
+  min-width: 40px;
+  transition: width 0.3s ease;
+}
+.mc-bar-base { background: #687078; }
+.mc-bar-effective { background: #ec7211; }
+
+.mc-stats {
+  display: flex;
+  gap: 1rem;
+}
+.mc-stat {
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  background: #fafafa;
+  border: 1px solid #eaeded;
+  border-radius: 2px;
+  min-width: 80px;
+}
+.mc-stat-value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ec7211;
+}
+.mc-stat-label {
+  display: block;
+  font-size: 0.65rem;
+  color: #687078;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 0.15rem;
+}
+
+.mc-explanation {
+  margin: 0.75rem 0 0 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid #eaeded;
+  font-size: 0.75rem;
+  color: #545b64;
+  line-height: 1.6;
+}
+.mc-explanation strong { color: #ec7211; }
+
+/* ---- Suitability ---- */
+.comparison-summary {
+  background: #fff;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #d5dbdb;
+  border-radius: 2px;
+  margin-bottom: 1.25rem;
+}
+.comparison-summary.savings { border-left: 4px solid #1d8102; }
+.comparison-summary.more-expensive { border-left: 4px solid #d13212; }
+.comparison-summary h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #16191f;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid #eaeded;
+}
+
+.suitability-panel {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #eaeded;
+  margin-top: 0.5rem;
+}
+.suitability-score {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+.suitability-score.excellent { background: #1d8102; }
+.suitability-score.good { background: #0073bb; }
+.suitability-score.marginal { background: #ec7211; }
+.suitability-score.poor { background: #d13212; }
+.suitability-detail { flex: 1; }
+.suitability-detail .rating { margin: 0; font-weight: 700; font-size: 0.85rem; color: #16191f; }
+.suitability-detail .warnings { margin: 0.25rem 0 0 0; padding-left: 1.1rem; }
+.suitability-detail .warnings li { font-size: 0.75rem; color: #687078; margin-bottom: 0.15rem; }
+
+@media (max-width: 768px) {
+  .metrics-grid { grid-template-columns: 1fr; }
+  .cost-table-wrapper { margin: 0 -0.75rem; }
+}
