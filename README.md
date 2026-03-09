@@ -18,6 +18,10 @@ AWS Lambda Managed Instances (LMI) runs Lambda functions on longer-lived AWS-man
 
 - **[Retirement Savings Simulator](./examples/fsi/sample-retirement-savings-simulator/)** - Monte Carlo simulation for retirement planning using sustained CPU-intensive parallel processing
 
+### Tools
+
+- **[LMI Pricing Calculator](https://aws-samples.github.io/sample-aws-lambda-managed-instances/)** - Interactive cost calculator for comparing AWS Lambda Managed Instances pricing
+
 ## Getting Started
 
 Each example includes:
