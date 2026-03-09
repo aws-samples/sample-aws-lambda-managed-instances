@@ -6,7 +6,7 @@ set -e
 # Each client gets 1M scenarios split into 100 shards = 100,000 total SQS messages
 
 # Get stack outputs
-STACK_NAME="retirement-savings-simulator"
+STACK_NAME="${1:-retirement-sim}"
 echo "=========================================="
 echo "  Retirement Simulator Load Test"
 echo "  1,000 Clients → 100,000 Messages"

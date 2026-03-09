@@ -1,0 +1,7 @@
+pytest>=7.0.0
+pytest-mock>=3.10.0
+aws-lambda-powertools[tracer]>=2.0.0
+boto3>=1.26.0
+moto[s3,dynamodb,sqs]>=4.0.0
+numpy>=1.24.0
+requests>=2.28.0

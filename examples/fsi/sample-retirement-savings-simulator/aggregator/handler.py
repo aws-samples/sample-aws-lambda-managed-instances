@@ -7,8 +7,9 @@ Fetches and aggregates shard results from S3 for a completed job.
 import json
 import boto3
 import os
+import numpy as np
 from typing import Dict, Any, List
-from statistics import mean
+from aws_lambda_powertools import Logger, Tracer, Metrics
 
 # Initialize AWS clients
 s3_client = boto3.client('s3')
@@ -18,7 +19,14 @@ dynamodb = boto3.resource('dynamodb')
 JOBS_TABLE_NAME = os.environ.get('JOBS_TABLE_NAME')
 OUTPUT_BUCKET = os.environ.get('OUTPUT_BUCKET')
 
+logger = Logger()
+tracer = Tracer()
+metrics = Metrics()
 
+
+@logger.inject_lambda_context(log_event=True)
+@tracer.capture_lambda_handler
+@metrics.log_metrics(capture_cold_start_metric=True)
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Aggregate simulation results for a completed job.
@@ -82,36 +90,30 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'No shard results found'})
             }
         
-        print(f"Found {len(shard_keys)} shard results for job {job_id}")
+        logger.info("Found shard results", job_id=job_id, shard_count=len(shard_keys))
         
         # Fetch and aggregate shard results
-        all_p5 = []
-        all_p50 = []
-        all_p95 = []
-        all_means = []
+        # Combine raw final savings from all shards for correct percentile calculation
+        all_final_savings = []
         total_scenarios = 0
         total_execution_ms = 0
         total_compute_ms = 0
-        
+
         for key in shard_keys:
             obj = s3_client.get_object(Bucket=OUTPUT_BUCKET, Key=key)
             shard = json.loads(obj['Body'].read().decode('utf-8'))
-            
-            results = shard['results']
-            all_p5.append(results['p5'])
-            all_p50.append(results['p50'])
-            all_p95.append(results['p95'])
-            all_means.append(results['mean'])
-            
+
+            all_final_savings.extend(shard['finalSavings'])
             total_scenarios += shard['scenarios']
             total_execution_ms += shard['executionMs']
             total_compute_ms += shard['computeMs']
-        
-        # Calculate aggregated statistics
-        agg_p5 = mean(all_p5)
-        agg_p50 = mean(all_p50)
-        agg_p95 = mean(all_p95)
-        agg_mean = mean(all_means)
+
+        # Compute correct percentiles from the combined distribution
+        combined = np.array(all_final_savings)
+        agg_p5 = float(np.percentile(combined, 5))
+        agg_p50 = float(np.percentile(combined, 50))
+        agg_p95 = float(np.percentile(combined, 95))
+        agg_mean = float(np.mean(combined))
         
         # Calculate performance metrics
         num_workers = len(shard_keys)
@@ -119,17 +121,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         avg_compute_ms = total_compute_ms / num_workers
         scenarios_per_second = total_scenarios / (total_compute_ms / 1000)
         
-        # Calculate probability of reaching goals
+        # Calculate probability of reaching goals from the full distribution
         def calculate_probability(threshold: float) -> int:
-            if agg_p95 < threshold:
-                return 0
-            elif agg_p5 >= threshold:
-                return 100
-            elif agg_p50 >= threshold:
-                prob = 50 + ((agg_p50 - threshold) / (agg_p95 - agg_p50)) * 45
-            else:
-                prob = 5 + ((threshold - agg_p5) / (agg_p50 - agg_p5)) * 45
-            return max(0, min(100, int(prob)))
+            return int(np.mean(combined >= threshold) * 100)
         
         # Estimate cost (rough approximation)
         gb_seconds = (avg_execution_ms / 1000) * (4096 / 1024) * num_workers
@@ -178,11 +172,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
         
     except Exception as e:
-        print(f"Error aggregating results: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error aggregating results")
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': 'Internal server error. Check logs for details.'})
         }
