@@ -88,6 +88,23 @@
 .footer-text p { margin: 0.2rem 0; opacity: 0.7; }
 .app-footer a { color: #ff9900; }
 .app-footer a:hover { color: #ffb84d; }
+.feedback-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 3px;
+  color: #ff9900;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+.feedback-btn:hover { background: rgba(255,255,255,0.08); border-color: #ff9900; color: #ffb84d; }
 
 /* ---- Assumptions Panel ---- */
 .assumptions-panel {

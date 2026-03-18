@@ -155,6 +155,15 @@ function App() {
             </p>
             <p>Pricing data for us-east-1 region. Actual costs may vary.</p>
           </div>
+          <a
+            className="feedback-btn"
+            href="https://github.com/aws-samples/sample-aws-lambda-managed-instances/issues/new?labels=feedback&template=feedback.md&title=%5BFeedback%5D+"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Send Feedback
+          </a>
         </div>
       </footer>
     </div>
