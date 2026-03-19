@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import './Results.css';
 
 function formatMoneyFull(value) {
@@ -7,6 +7,34 @@ function formatMoneyFull(value) {
 
 function formatNumber(value) {
   return value.toLocaleString();
+}
+
+function exportToCsv(columns, capacity, lambdaOD) {
+  const rows = [
+    ['', ...columns.map(c => `${c.group} - ${c.label}`)],
+    ['Compute Cost', ...columns.map(c => (c.data.compute_cost ?? c.data.ec2_after_discount ?? c.data.ec2_cost ?? 0).toFixed(2))],
+    ['Mgmt Fee (15%)', ...columns.map(c => c.data.management_fee !== undefined ? c.data.management_fee.toFixed(2) : '')],
+    ['Request Cost', ...columns.map(c => c.data.request_cost !== undefined ? c.data.request_cost.toFixed(2) : '')],
+    ['Discount', ...columns.map(c => c.data.discount_rate ? `${(c.data.discount_rate * 100).toFixed(0)}%` : '')],
+    ['Total / Month', ...columns.map(c => c.data.total_cost.toFixed(2))],
+    ['vs Lambda OD', ...columns.map(c => {
+      const diff = lambdaOD.total_cost - c.data.total_cost;
+      const pct = lambdaOD.total_cost > 0 ? (diff / lambdaOD.total_cost) * 100 : 0;
+      return Math.abs(diff) < 0.01 ? '' : `${diff > 0 ? '-' : '+'}${Math.abs(pct).toFixed(0)}%`;
+    })],
+    [],
+    ['Capacity Metrics'],
+    ['Total Instances', capacity.instances_with_buffer || capacity.instances_needed],
+    ['Environments Needed', capacity.environments_needed],
+    ['Environments per Instance', capacity.envs_per_instance],
+  ];
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lmi-cost-comparison.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 export default function Results({ results, formData }) {
@@ -112,7 +140,13 @@ export default function Results({ results, formData }) {
 
       {/* Cost Comparison Table */}
       <div className="results-section cost-table-section">
-        <h3>Monthly Cost Comparison</h3>
+        <div className="section-header-row">
+          <h3>Monthly Cost Comparison</h3>
+          <button className="export-csv-btn" onClick={() => exportToCsv(columns, capacity, tableData.lambdaOD)}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
         <div className="cost-table-wrapper">
           <table className="cost-table">
             <thead>

@@ -1,6 +1,29 @@
 /* AWS Pricing Calculator style results */
 .results { margin-top: 1.25rem; }
 
+.section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+.section-header-row h3 { margin-bottom: 0; }
+.export-csv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background: #fff;
+  border: 1px solid #aab7b8;
+  border-radius: 2px;
+  color: #16191f;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.export-csv-btn:hover { background: #fafafa; border-color: #0073bb; color: #0073bb; }
+
 /* Key metrics bar */
 .key-metrics {
   background: #232f3e;
